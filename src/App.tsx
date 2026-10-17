@@ -6,10 +6,8 @@
 import React, { useState, useEffect } from 'react';
 import { StaffProvider, useStaff } from './context/StaffContext';
 import { Header, ActiveTab } from './components/Header';
-import { Sidebar } from './components/Sidebar';
-import { DashboardView } from './components/DashboardView';
-import { StaffDirectoryView } from './components/StaffDirectoryView';
 import { AttendanceView } from './components/AttendanceView';
+import { StaffDirectoryView } from './components/StaffDirectoryView';
 import { AdvancesView } from './components/AdvancesView';
 import { LoansView } from './components/LoansView';
 import { StaffFormModal } from './components/StaffFormModal';
@@ -22,8 +20,7 @@ import { StaffMember, LoanAdvanceType } from './types';
 
 const MainLayout: React.FC = () => {
   const { staff, toasts, dismissToast, settings } = useStaff();
-  const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('staff');
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
   const [staffToEdit, setStaffToEdit] = useState<StaffMember | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -81,12 +78,12 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/70 flex font-sans relative selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50/70 flex flex-col font-sans relative selection:bg-emerald-500 selection:text-white">
       {/* Subtle top ambient lighting glow */}
       <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-64 bg-gradient-to-b from-emerald-500/5 via-teal-500/5 to-transparent blur-3xl -z-10" />
 
-      {/* Desktop Persistent Sidebar & Mobile Drawer Navigation */}
-      <Sidebar
+      {/* Top Header Application & Navigation Bar */}
+      <Header
         activeTab={activeTab}
         onTabChange={(tab) => {
           setActiveTab(tab);
@@ -96,71 +93,41 @@ const MainLayout: React.FC = () => {
         onOpenAdvance={() => handleOpenAdvance()}
         onOpenLoan={() => handleOpenLoan()}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
-        isMobileOpen={isMobileSidebarOpen}
-        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* Main Workspace Column */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Header Application Bar */}
-        <Header
-          activeTab={activeTab}
-          onTabChange={(tab) => {
-            setActiveTab(tab);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          onOpenAddStaff={handleOpenAddStaff}
-          onOpenSettings={() => setIsSettingsModalOpen(true)}
-          onToggleSidebar={() => setIsMobileSidebarOpen((prev) => !prev)}
-        />
+      {/* Main Workspace (Initial Home View is Staff List) */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-all">
+        {activeTab === 'staff' && (
+          <StaffDirectoryView
+            onEditStaff={handleEditStaff}
+            onOpenAddStaff={handleOpenAddStaff}
+          />
+        )}
 
-        {/* Dynamic Page Views */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-all">
-          {activeTab === 'dashboard' && (
-            <DashboardView
-              onNavigateTab={(tab) => {
-                setActiveTab(tab);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              onOpenAddStaff={handleOpenAddStaff}
-              onOpenAdvance={(staffMember) => handleOpenAdvance(staffMember)}
-              onOpenSalary={(staffMember) => setSelectedStaffForSalary(staffMember)}
-              onViewStaffDetails={(staffMember) => setSelectedStaffForDetails(staffMember)}
-            />
-          )}
+        {activeTab === 'attendance' && <AttendanceView />}
 
-          {activeTab === 'staff' && (
-            <StaffDirectoryView
-              onEditStaff={handleEditStaff}
-              onOpenAddStaff={handleOpenAddStaff}
-            />
-          )}
+        {activeTab === 'advances' && (
+          <AdvancesView
+            onOpenRecordAdvance={(staffMember) => handleOpenAdvance(staffMember)}
+            onViewStaffDetails={(staffMember) => setSelectedStaffForDetails(staffMember)}
+          />
+        )}
 
-          {activeTab === 'attendance' && <AttendanceView />}
+        {activeTab === 'loans' && (
+          <LoansView
+            onOpenIssueLoan={(staffMember) => handleOpenLoan(staffMember, 'loan_issue')}
+            onOpenRepayLoan={(staffMember) => handleOpenLoan(staffMember, 'loan_repay')}
+            onViewStaffDetails={(staffMember) => setSelectedStaffForDetails(staffMember)}
+          />
+        )}
+      </main>
 
-          {activeTab === 'advances' && (
-            <AdvancesView
-              onOpenRecordAdvance={(staffMember) => handleOpenAdvance(staffMember)}
-              onViewStaffDetails={(staffMember) => setSelectedStaffForDetails(staffMember)}
-            />
-          )}
-
-          {activeTab === 'loans' && (
-            <LoansView
-              onOpenIssueLoan={(staffMember) => handleOpenLoan(staffMember, 'loan_issue')}
-              onOpenRepayLoan={(staffMember) => handleOpenLoan(staffMember, 'loan_repay')}
-              onViewStaffDetails={(staffMember) => setSelectedStaffForDetails(staffMember)}
-            />
-          )}
-        </main>
-
-        {/* Modern Clean Footer */}
-        <footer className="no-print mt-auto border-t border-slate-200/80 bg-white/80 backdrop-blur-md py-4">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center text-xs text-slate-400">
-            <span>© {new Date().getFullYear()} {settings.companyName || 'Shree Lakshmi Bhavan'}. All rights reserved.</span>
-          </div>
-        </footer>
-      </div>
+      {/* Modern Clean Footer */}
+      <footer className="no-print mt-auto border-t border-slate-200/80 bg-white/80 backdrop-blur-md py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center text-xs text-slate-400">
+          <span>© {new Date().getFullYear()} {settings.companyName || 'Shree Lakshmi Bhavan'}. All rights reserved.</span>
+        </div>
+      </footer>
 
       {/* Global Modals */}
       <StaffFormModal
@@ -190,7 +157,7 @@ const MainLayout: React.FC = () => {
         />
       )}
 
-      {/* Full Details Modal from Dashboard or Table Click */}
+      {/* Full Details Modal */}
       {selectedStaffForDetails && (
         <StaffFullDetailsModal
           isOpen={!!selectedStaffForDetails}
@@ -202,10 +169,13 @@ const MainLayout: React.FC = () => {
             if (found) setSelectedStaffForSalary(found);
           }}
           onOpenAdvance={(staffMember) => handleOpenAdvance(staffMember)}
+          onOpenLoan={(staffMember, defaultType) =>
+            handleOpenLoan(staffMember, defaultType || 'loan_issue')
+          }
         />
       )}
 
-      {/* Salary Studio Modal from Dashboard Click */}
+      {/* Salary Studio Modal */}
       {selectedStaffForSalary && (
         <SalaryStudioModal
           isOpen={!!selectedStaffForSalary}
@@ -227,3 +197,4 @@ export default function App() {
     </StaffProvider>
   );
 }
+

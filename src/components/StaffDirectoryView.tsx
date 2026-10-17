@@ -13,6 +13,7 @@ import {
   Phone,
   MessageCircle,
   Wallet,
+  CreditCard,
   Users,
   CheckCircle2,
   ArrowUpRight,
@@ -62,6 +63,10 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
   const [selectedStaffForDetails, setSelectedStaffForDetails] = useState<StaffMember | null>(null);
   const [selectedStaffForSalary, setSelectedStaffForSalary] = useState<StaffMember | null>(null);
   const [selectedStaffForAdvance, setSelectedStaffForAdvance] = useState<StaffMember | null>(null);
+  const [selectedStaffForLoan, setSelectedStaffForLoan] = useState<{
+    staff: StaffMember;
+    defaultType: 'loan_issue' | 'loan_repay';
+  } | null>(null);
 
   const handleDeleteStaff = async (e: React.MouseEvent, member: StaffMember) => {
     e.stopPropagation();
@@ -566,55 +571,69 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                         </span>
                       </td>
 
-                      {/* Column 7: Quick Actions (Salary, Advance, Edit) */}
+                      {/* Column 7: Quick Actions (Advance, Loan, Salary, Edit, Delete) */}
                       <td className="py-3.5 px-4 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
-                          {/* 1. Salary Button */}
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedStaffForSalary(member);
-                            }}
-                            className="px-2.5 py-1.5 text-xs font-semibold text-blue-800 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 border border-blue-200 rounded-xl transition-all inline-flex items-center gap-1 shadow-2xs btn-press"
-                            title="Open Salary Studio for salary settlement"
-                          >
-                            <Calculator className="w-3.5 h-3.5 text-blue-700" />
-                            <span>Salary</span>
-                          </button>
-
-                          {/* 2. Advance Button */}
+                          {/* 1. Advance Button */}
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               setSelectedStaffForAdvance(member);
                             }}
-                            className="px-2.5 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border border-amber-200 rounded-xl transition-all inline-flex items-center gap-1 shadow-2xs btn-press"
-                            title="Record Advance or Loan"
+                            className="px-2.5 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 active:bg-purple-200 border border-purple-200 rounded-xl transition-all inline-flex items-center gap-1 shadow-2xs btn-press cursor-pointer"
+                            title="Record salary advance for this staff member"
                           >
-                            <HandCoins className="w-3.5 h-3.5 text-amber-700" />
-                            <span>Advance</span>
+                            <Wallet className="w-3.5 h-3.5 text-purple-600" />
+                            <span>+ Advance</span>
                           </button>
 
-                          {/* 3. Edit Button */}
+                          {/* 2. Loan Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStaffForLoan({ staff: member, defaultType: 'loan_issue' });
+                            }}
+                            className="px-2.5 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 active:bg-amber-200 border border-amber-200 rounded-xl transition-all inline-flex items-center gap-1 shadow-2xs btn-press cursor-pointer"
+                            title="Issue staff loan or manage EMI"
+                          >
+                            <CreditCard className="w-3.5 h-3.5 text-amber-600" />
+                            <span>+ Loan</span>
+                          </button>
+
+                          {/* 3. Salary Button */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedStaffForSalary(member);
+                            }}
+                            className="px-2.5 py-1.5 text-xs font-semibold text-blue-800 bg-blue-50 hover:bg-blue-100 active:bg-blue-200 border border-blue-200 rounded-xl transition-all inline-flex items-center gap-1 shadow-2xs btn-press cursor-pointer"
+                            title="Open Salary Studio for salary settlement"
+                          >
+                            <Calculator className="w-3.5 h-3.5 text-blue-700" />
+                            <span>Salary</span>
+                          </button>
+
+                          {/* 4. Edit Button */}
                           <button
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               onEditStaff(member);
                             }}
-                            className="p-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all inline-flex items-center justify-center btn-press shadow-2xs"
+                            className="p-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all inline-flex items-center justify-center btn-press shadow-2xs cursor-pointer"
                             title="Edit Staff Profile"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
                           </button>
 
-                          {/* 4. Delete Button */}
+                          {/* 5. Delete Button */}
                           <button
                             type="button"
                             onClick={(e) => handleDeleteStaff(e, member)}
-                            className="p-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all inline-flex items-center justify-center btn-press shadow-2xs"
+                            className="p-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all inline-flex items-center justify-center btn-press shadow-2xs cursor-pointer"
                             title="Delete Staff Member"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -744,50 +763,68 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                   )}
                 </div>
 
-                {/* Card Action Buttons: Salary, Advance, Edit */}
+                {/* Card Action Buttons: Advance, Loan, Salary, Edit, Delete */}
                 <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-1.5">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedStaffForSalary(member);
-                    }}
-                    className="flex-1 py-1.5 px-2 text-xs font-semibold text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-all flex items-center justify-center gap-1 shadow-2xs btn-press"
-                    title="Salary calculation & settlement"
-                  >
-                    <Calculator className="w-3.5 h-3.5 text-blue-700" />
-                    <span>Salary</span>
-                  </button>
-
+                  {/* 1. Advance Button */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       setSelectedStaffForAdvance(member);
                     }}
-                    className="flex-1 py-1.5 px-2 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all flex items-center justify-center gap-1 shadow-2xs btn-press"
-                    title="Record advance or loan"
+                    className="flex-1 py-1.5 px-2 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition-all flex items-center justify-center gap-1 shadow-2xs btn-press cursor-pointer"
+                    title="Record salary advance for this staff member"
                   >
-                    <HandCoins className="w-3.5 h-3.5 text-amber-700" />
+                    <Wallet className="w-3.5 h-3.5 text-purple-600" />
                     <span>Advance</span>
                   </button>
 
+                  {/* 2. Loan Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedStaffForLoan({ staff: member, defaultType: 'loan_issue' });
+                    }}
+                    className="flex-1 py-1.5 px-2 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all flex items-center justify-center gap-1 shadow-2xs btn-press cursor-pointer"
+                    title="Issue staff loan or manage EMI"
+                  >
+                    <CreditCard className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Loan</span>
+                  </button>
+
+                  {/* 3. Salary Button */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedStaffForSalary(member);
+                    }}
+                    className="flex-1 py-1.5 px-2 text-xs font-semibold text-blue-800 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-all flex items-center justify-center gap-1 shadow-2xs btn-press cursor-pointer"
+                    title="Salary calculation & settlement"
+                  >
+                    <Calculator className="w-3.5 h-3.5 text-blue-700" />
+                    <span>Salary</span>
+                  </button>
+
+                  {/* 4. Edit Button */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
                       onEditStaff(member);
                     }}
-                    className="p-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all btn-press shadow-2xs"
+                    className="p-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all btn-press shadow-2xs cursor-pointer"
                     title="Edit profile"
                   >
                     <Edit2 className="w-3.5 h-3.5" />
                   </button>
 
+                  {/* 5. Delete Button */}
                   <button
                     type="button"
                     onClick={(e) => handleDeleteStaff(e, member)}
-                    className="p-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all btn-press shadow-2xs"
+                    className="p-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all btn-press shadow-2xs cursor-pointer"
                     title="Delete staff member"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -810,6 +847,9 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
           if (found) setSelectedStaffForSalary(found);
         }}
         onOpenAdvance={(member) => setSelectedStaffForAdvance(member)}
+        onOpenLoan={(member, defaultType) =>
+          setSelectedStaffForLoan({ staff: member, defaultType: defaultType || 'loan_issue' })
+        }
       />
 
       {/* 2. One-by-One Salary Studio Modal */}
@@ -821,13 +861,25 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
         />
       )}
 
-      {/* 3. One-by-One Direct Advance Loan Modal */}
+      {/* 3. Direct Advance Modal */}
       {selectedStaffForAdvance && (
         <AdvanceLoanModal
           isOpen={!!selectedStaffForAdvance}
           onClose={() => setSelectedStaffForAdvance(null)}
           staff={selectedStaffForAdvance}
           defaultType="advance"
+          mode="advance"
+        />
+      )}
+
+      {/* 4. Direct Loan Modal */}
+      {selectedStaffForLoan && (
+        <AdvanceLoanModal
+          isOpen={!!selectedStaffForLoan}
+          onClose={() => setSelectedStaffForLoan(null)}
+          staff={selectedStaffForLoan.staff}
+          defaultType={selectedStaffForLoan.defaultType}
+          mode="loan"
         />
       )}
     </div>

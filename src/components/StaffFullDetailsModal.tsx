@@ -29,6 +29,7 @@ import { useStaff } from '../context/StaffContext';
 import { StaffAvatar } from './StaffAvatar';
 import { StaffLedgerSheet } from './StaffLedgerSheet';
 import { PayslipPrintModal } from './PayslipPrintModal';
+import { AdvanceLoanModal } from './AdvanceLoanModal';
 import {
   formatCurrency,
   formatDatePretty,
@@ -42,6 +43,7 @@ interface StaffFullDetailsModalProps {
   onEditStaff: (staff: StaffMember) => void;
   onOpenSalary: (staffId: string) => void;
   onOpenAdvance?: (staff: StaffMember) => void;
+  onOpenLoan?: (staff: StaffMember, defaultType?: 'loan_issue' | 'loan_repay') => void;
 }
 
 export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
@@ -51,6 +53,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
   onEditStaff,
   onOpenSalary,
   onOpenAdvance,
+  onOpenLoan,
 }) => {
   const {
     getStaffLoanBalance,
@@ -68,6 +71,9 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
 
   const [copiedAccount, setCopiedAccount] = useState(false);
   const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
+  const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+  const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+  const [loanModalType, setLoanModalType] = useState<'loan_issue' | 'loan_repay'>('loan_issue');
 
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -265,14 +271,37 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
               </span>
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex flex-wrap items-center gap-2 ml-auto">
+              <button
+                type="button"
+                onClick={() => setIsAdvanceModalOpen(true)}
+                className="px-3 py-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-lg shadow-2xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                title="Record salary advance for this staff member"
+              >
+                <Wallet className="w-3.5 h-3.5 text-purple-600" />
+                <span>+ Add Advance</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setLoanModalType('loan_issue');
+                  setIsLoanModalOpen(true);
+                }}
+                className="px-3 py-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg shadow-2xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                title="Issue loan for this staff member"
+              >
+                <CreditCard className="w-3.5 h-3.5 text-amber-600" />
+                <span>+ Add Loan</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
                   onClose();
                   onOpenSalary(staff.id);
                 }}
-                className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-lg shadow-xs transition-colors inline-flex items-center gap-1.5"
+                className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-lg shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 title="Open Interactive Salary Studio"
               >
                 <Calculator className="w-3.5 h-3.5" />
@@ -282,7 +311,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsPayslipModalOpen(true)}
-                className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition-colors inline-flex items-center gap-1.5"
+                className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 title="Generate & Print Payslip"
               >
                 <Receipt className="w-3.5 h-3.5" />
@@ -442,25 +471,69 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   </span>
                 </div>
 
-                <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
-                  <span className="text-[10px] text-blue-700 font-semibold uppercase block">Month Advance</span>
-                  <span className="text-base font-bold font-mono text-blue-900 mt-1 block">
-                    {formatCurrency(currentMonthAdvances)}
-                  </span>
+                <div className="p-3 bg-blue-50 rounded-xl border border-blue-200 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] text-blue-700 font-semibold uppercase block">Month Advance</span>
+                      <button
+                        type="button"
+                        onClick={() => setIsAdvanceModalOpen(true)}
+                        className="text-[10px] font-bold text-purple-700 hover:text-purple-900 bg-purple-100 hover:bg-purple-200 px-1.5 py-0.5 rounded transition-colors inline-flex items-center gap-0.5 cursor-pointer"
+                        title="Add advance payment"
+                      >
+                        <Plus className="w-2.5 h-2.5" />
+                        <span>Add</span>
+                      </button>
+                    </div>
+                    <span className="text-base font-bold font-mono text-blue-900 mt-1 block">
+                      {formatCurrency(currentMonthAdvances)}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
-                  <span className="text-[10px] text-amber-700 font-semibold uppercase block">Active Loan</span>
-                  <span className="text-base font-bold font-mono text-amber-900 mt-1 block">
-                    {formatCurrency(loanBal)}
-                  </span>
-                  {loanBal > 0 && (
-                    <span className="text-[10px] text-amber-800 font-medium block mt-0.5">
-                      {staff.autoLoanDeduct !== false
-                        ? `Auto Repay: ₹${(staff.monthlyLoanDeduction && staff.monthlyLoanDeduction > 0 ? staff.monthlyLoanDeduction : loanBal).toLocaleString('en-IN')}/mo`
-                        : 'Manual Repay Only'}
+                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] text-amber-700 font-semibold uppercase block">Active Loan</span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLoanModalType('loan_issue');
+                            setIsLoanModalOpen(true);
+                          }}
+                          className="text-[10px] font-bold text-amber-800 hover:text-amber-950 bg-amber-200/90 hover:bg-amber-300 px-1.5 py-0.5 rounded transition-colors inline-flex items-center gap-0.5 cursor-pointer"
+                          title="Issue loan"
+                        >
+                          <Plus className="w-2.5 h-2.5" />
+                          <span>Add</span>
+                        </button>
+                        {loanBal > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLoanModalType('loan_repay');
+                              setIsLoanModalOpen(true);
+                            }}
+                            className="text-[10px] font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-100 hover:bg-emerald-200 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+                            title="Repay loan"
+                          >
+                            Repay
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-base font-bold font-mono text-amber-900 mt-1 block">
+                      {formatCurrency(loanBal)}
                     </span>
-                  )}
+                    {loanBal > 0 && (
+                      <span className="text-[10px] text-amber-800 font-medium block mt-0.5">
+                        {staff.autoLoanDeduct !== false
+                          ? `Auto Repay: ₹${(staff.monthlyLoanDeduction && staff.monthlyLoanDeduction > 0 ? staff.monthlyLoanDeduction : loanBal).toLocaleString('en-IN')}/mo`
+                          : 'Manual Repay Only'}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Net Payable Highlight Box */}
@@ -505,22 +578,43 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   <History className="w-4 h-4 text-amber-600" />
                   <span>Loans & Advances Ledger ({loanAdvanceHistory.length} records)</span>
                 </h3>
-                <div className="flex items-center gap-2.5">
-                  <span className="text-xs font-mono font-bold text-amber-800">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-mono font-bold text-amber-800 mr-1">
                     Loan Balance: {formatCurrency(loanBal)}
                   </span>
-                  {onOpenAdvance && (
+                  <button
+                    type="button"
+                    onClick={() => setIsAdvanceModalOpen(true)}
+                    className="px-2.5 py-1 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                    title="Record mid-month salary advance"
+                  >
+                    <Wallet className="w-3.5 h-3.5 text-purple-600" />
+                    <span>+ Add Advance</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLoanModalType('loan_issue');
+                      setIsLoanModalOpen(true);
+                    }}
+                    className="px-2.5 py-1 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                    title="Issue new loan or EMI"
+                  >
+                    <CreditCard className="w-3.5 h-3.5 text-amber-600" />
+                    <span>+ Add Loan</span>
+                  </button>
+                  {loanBal > 0 && (
                     <button
                       type="button"
                       onClick={() => {
-                        onClose();
-                        onOpenAdvance(staff);
+                        setLoanModalType('loan_repay');
+                        setIsLoanModalOpen(true);
                       }}
-                      className="px-2.5 py-1 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200/80 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Record New Advance or Loan"
+                      className="px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                      title="Record loan repayment"
                     >
-                      <HandCoins className="w-3.5 h-3.5 text-amber-700" />
-                      <span>+ Record Advance / Loan</span>
+                      <HandCoins className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Repay Loan</span>
                     </button>
                   )}
                 </div>
@@ -672,6 +766,28 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
         paymentMethod="Bank Transfer"
         paymentNotes=""
       />
+
+      {/* Direct Embedded Advance Modal */}
+      {isAdvanceModalOpen && (
+        <AdvanceLoanModal
+          isOpen={isAdvanceModalOpen}
+          onClose={() => setIsAdvanceModalOpen(false)}
+          staff={staff}
+          defaultType="advance"
+          mode="advance"
+        />
+      )}
+
+      {/* Direct Embedded Loan Modal */}
+      {isLoanModalOpen && (
+        <AdvanceLoanModal
+          isOpen={isLoanModalOpen}
+          onClose={() => setIsLoanModalOpen(false)}
+          staff={staff}
+          defaultType={loanModalType}
+          mode="loan"
+        />
+      )}
     </>
   );
 };
