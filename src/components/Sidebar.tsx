@@ -9,7 +9,6 @@ import {
   Sliders,
   X,
   ArrowUpRight,
-  Sparkles,
   ChevronRight,
   HandCoins,
 } from 'lucide-react';
