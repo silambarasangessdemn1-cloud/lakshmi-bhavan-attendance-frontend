@@ -14,13 +14,11 @@ import {
   MessageCircle,
   Wallet,
   CreditCard,
-  Users,
   CheckCircle2,
   ArrowUpRight,
   X,
   Copy,
   Check,
-  TrendingUp,
   Receipt,
   BadgeAlert,
   Trash2,
@@ -48,7 +46,6 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
     setSelectedMonth,
     getStaffLoanBalance,
     getStaffAdvancesForMonth,
-    calculateStaffPayroll,
     deleteStaff,
     showToast,
   } = useStaff();
@@ -88,33 +85,6 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
     return ['All', ...Array.from(set)];
   }, [staff]);
 
-  // Executive KPI summary calculations
-  const kpiData = useMemo(() => {
-    const activeList = staff.filter((s) => s.status !== 'inactive');
-    let totalEstimatedPayroll = 0;
-    let totalOutstandingLoans = 0;
-    let totalMonthAdvances = 0;
-
-    staff.forEach((member) => {
-      const loanBal = getStaffLoanBalance(member.id);
-      const adv = getStaffAdvancesForMonth(member.id, selectedMonth);
-      const payroll = calculateStaffPayroll(member.id, selectedMonth);
-
-      totalOutstandingLoans += loanBal;
-      totalMonthAdvances += adv;
-      if (payroll) {
-        totalEstimatedPayroll += payroll.gross;
-      }
-    });
-
-    return {
-      totalStaff: staff.length,
-      activeStaff: activeList.length,
-      totalEstimatedPayroll,
-      totalOutstandingLoans,
-      totalMonthAdvances,
-    };
-  }, [staff, selectedMonth, getStaffLoanBalance, getStaffAdvancesForMonth, calculateStaffPayroll]);
 
   // Filtered staff list
   const filteredStaff = useMemo(() => {
@@ -157,82 +127,6 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 1. Executive Analytics KPI Summary Banner */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {/* Metric 1: Active Team */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Active Staff</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <Users className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold text-slate-900 tracking-tight font-mono">
-              {kpiData.activeStaff}
-            </span>
-            <span className="text-xs text-slate-400 font-medium">/ {kpiData.totalStaff} total</span>
-          </div>
-          <div className="mt-2 flex items-center gap-1.5 text-[11px] font-medium text-emerald-700">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span>{(kpiData.activeStaff / (kpiData.totalStaff || 1) * 100).toFixed(0)}% attendance eligible</span>
-          </div>
-        </div>
-
-        {/* Metric 2: Monthly Estimated Payroll */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Est. Monthly Payroll</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2">
-            <span className="text-2xl font-extrabold text-slate-900 tracking-tight font-mono">
-              {formatCurrency(kpiData.totalEstimatedPayroll)}
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-medium text-slate-500 flex items-center gap-1">
-            <span>For {formatMonthName(selectedMonth)}</span>
-          </div>
-        </div>
-
-        {/* Metric 3: Active Loans Outstanding */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Total Loans Due</span>
-            <div className="w-8 h-8 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
-              <Receipt className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2">
-            <span className="text-2xl font-extrabold text-slate-900 tracking-tight font-mono">
-              {formatCurrency(kpiData.totalOutstandingLoans)}
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-medium text-slate-500 flex items-center gap-1">
-            <span>Recoverable from salary</span>
-          </div>
-        </div>
-
-        {/* Metric 4: Month Advances Disbursed */}
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs hover:shadow-xs transition-shadow">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500">Advances This Month</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-              <Wallet className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2">
-            <span className="text-2xl font-extrabold text-slate-900 tracking-tight font-mono">
-              {formatCurrency(kpiData.totalMonthAdvances)}
-            </span>
-          </div>
-          <div className="mt-2 text-[11px] font-medium text-slate-500 flex items-center gap-1">
-            <span>Deducted in settlement</span>
-          </div>
-        </div>
-      </div>
 
       {/* 2. Controls & Search Bar */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3.5">
