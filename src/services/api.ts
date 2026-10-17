@@ -6,7 +6,12 @@ import {
   CompanySettings,
 } from '../types';
 
-const API_BASE = '/api';
+// Common centralized API endpoint for Shree Lakshmi Bhavan Staff & Payroll Manager
+// Automatically connects to Render production backend with import.meta.env.VITE_API_URL fallback
+const DEFAULT_API_BASE = 'https://lakshmi-bhavan-attendance-backend.onrender.com/api';
+const RAW_API_BASE = (import.meta.env.VITE_API_URL as string) || DEFAULT_API_BASE;
+
+export const API_BASE = RAW_API_BASE.replace(/\/+$/, '');
 
 interface ApiResponse<T = any> {
   success: boolean;

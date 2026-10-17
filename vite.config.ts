@@ -19,8 +19,9 @@ export default defineConfig(() => {
       host: '0.0.0.0',
       proxy: {
         '/api': {
-          target: 'http://localhost:5050',
+          target: 'https://lakshmi-bhavan-attendance-backend.onrender.com',
           changeOrigin: true,
+          secure: true,
         },
       },
     },
