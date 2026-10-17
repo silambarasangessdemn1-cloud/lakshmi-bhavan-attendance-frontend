@@ -1,0 +1,6 @@
+{
+  "name": "Shree Lakshmi Bhavan - Staff Salary & Attendance Manager",
+  "description": "Manage staff, daily attendance, payroll, advances, loans, and printable salary slips for Shree Lakshmi Bhavan.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
