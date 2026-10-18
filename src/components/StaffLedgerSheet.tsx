@@ -77,37 +77,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
       {/* ─────────────────────────────────────────────────────────────
           1. EXECUTIVE DOCUMENT HEADER
       ───────────────────────────────────────────────────────────── */}
-      <div className="border-b border-slate-200 pb-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-emerald-600 via-emerald-700 to-teal-800 flex items-center justify-center text-white font-black text-lg shadow-md shadow-emerald-900/10 ring-2 ring-emerald-500/20 shrink-0">
-            <span>SL</span>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                Official Wage Register
-              </span>
-              <span className="text-slate-300">·</span>
-              <span className="text-xs text-slate-500 font-mono">Form XII</span>
-            </div>
-            <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
-              Daily Attendance &amp; Wage Ledger Sheet
-            </h2>
-            <p className="text-xs text-slate-500">
-              {settings.companyName || 'Shree Lakshmi Bhavan'} · Detailed calendar roll-call &amp; wage computation
-            </p>
-          </div>
-        </div>
-
-        {/* Period Badge */}
-        <div className="flex items-center gap-2 self-start sm:self-center">
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200/80 text-xs font-semibold text-slate-700">
-            <Calendar className="w-4 h-4 text-slate-400" />
-            <span className="font-bold text-slate-900">{formatMonthName(month)}</span>
-            <span className="text-slate-400 font-mono text-[11px]">({daysInMonth} Days)</span>
-          </div>
-        </div>
-      </div>
+     
 
       {/* ─────────────────────────────────────────────────────────────
           2. STAFF IDENTITY STRIP
@@ -507,7 +477,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
       </div>
 
       {/* Sign-Off Signature Line (Print / Official Record) */}
-      <div className="pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-xs text-slate-500">
+      {/* <div className="pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-xs text-slate-500">
         <div className="space-y-1">
           <div className="h-10 border-b border-slate-300 border-dashed" />
           <span className="font-semibold text-slate-700 block">Prepared By</span>
@@ -525,7 +495,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
           <span className="font-semibold text-slate-700 block">Authorized Signatory</span>
           <span className="text-[10px] text-slate-400">Shree Lakshmi Bhavan Management</span>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

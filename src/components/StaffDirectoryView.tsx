@@ -134,7 +134,7 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
       <div
         key={member.id}
         onClick={() => setSelectedStaffForDetails(member)}
-        className="bg-white rounded-2xl border border-slate-200/80 hover:border-emerald-300 hover:shadow-md p-4 shadow-2xs transition-all flex flex-col justify-between space-y-3 cursor-pointer group active:scale-[0.99]"
+        className="bg-white rounded-2xl border border-slate-200 hover:border-emerald-300 hover:shadow-md p-4.5 shadow-2xs transition-all flex flex-col justify-between space-y-3.5 cursor-pointer group active:scale-[0.99]"
         title="Click card to view complete profile"
       >
         <div>
@@ -150,88 +150,89 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                 />
               </div>
               <div className="min-w-0">
-                <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors flex items-center gap-1">
+                <div className="font-bold text-base text-slate-950 group-hover:text-emerald-700 transition-colors flex items-center gap-1">
                   <span className="truncate">{member.name}</span>
-                  <ArrowUpRight className="w-3 h-3 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+                  <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
                 </div>
-                <div className="flex items-center gap-1.5 mt-0.5">
+                <div className="flex items-center gap-2 mt-1">
                   <span
                     onClick={(e) => handleCopyId(e, member.id)}
-                    className="font-mono text-[10px] text-slate-400 hover:text-slate-700 bg-slate-100 px-1.5 py-0.2 rounded transition-colors inline-flex items-center gap-0.5 shrink-0"
+                    className="font-mono text-xs font-bold text-slate-900 hover:text-black bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2 py-0.5 rounded-md transition-colors inline-flex items-center gap-1 shrink-0"
                     title="Click to copy ID"
                   >
                     {member.id}
                     {copiedId === member.id ? (
-                      <Check className="w-2.5 h-2.5 text-emerald-600" />
+                      <Check className="w-3 h-3 text-emerald-600" />
                     ) : (
-                      <Copy className="w-2.5 h-2.5 opacity-60" />
+                      <Copy className="w-3 h-3 text-slate-600" />
                     )}
                   </span>
-                  <span className="text-xs text-slate-500 truncate">{member.designation}</span>
+                  <span className="text-xs font-semibold text-slate-700 truncate">{member.designation}</span>
                 </div>
               </div>
             </div>
 
             <span
-              className={`px-2 py-0.5 text-[10px] font-bold rounded-full border shrink-0 ${
+              className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-full border shrink-0 shadow-2xs ${
                 member.status !== 'inactive'
-                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                  : 'bg-slate-100 text-slate-700 border-slate-300'
               }`}
             >
-              {member.status !== 'inactive' ? 'Active' : 'Inactive'}
+              <span className={`w-1.5 h-1.5 rounded-full ${member.status !== 'inactive' ? 'bg-emerald-600' : 'bg-slate-500'}`} />
+              <span>{member.status !== 'inactive' ? 'Active' : 'Inactive'}</span>
             </span>
           </div>
 
           {/* 2x2 Mini Metrics Grid: Wage, OT, Advances, Loan */}
-          <div className="mt-3.5 grid grid-cols-2 gap-2 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100 text-[11px]">
+          <div className="mt-3.5 grid grid-cols-2 gap-2 bg-slate-50/90 p-3 rounded-xl border border-slate-200 text-xs">
             <div>
-              <span className="text-slate-400 block text-[10px] font-medium">Daily Wage</span>
-              <span className="font-mono font-bold text-slate-900">
+              <span className="text-slate-900 block text-[11px] font-bold uppercase tracking-wider">Daily Wage</span>
+              <span className="font-mono font-bold text-sm text-slate-950">
                 {formatCurrency(member.wage || 0)}
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] font-medium">OT Rate</span>
-              <span className="font-mono font-bold text-slate-900">
-                {formatCurrency(member.otRate || 0)}/h
+              <span className="text-slate-900 block text-[11px] font-bold uppercase tracking-wider">OT Rate</span>
+              <span className="font-mono font-bold text-sm text-slate-950">
+                {formatCurrency(member.otRate || 0)}/hr
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] font-medium">Month Advance</span>
+              <span className="text-slate-900 block text-[11px] font-bold uppercase tracking-wider">Month Advance</span>
               <span
-                className={`font-mono font-bold ${
-                  monthAdv > 0 ? 'text-amber-700' : 'text-slate-400'
+                className={`font-mono font-bold text-sm ${
+                  monthAdv > 0 ? 'text-purple-950' : 'text-slate-600'
                 }`}
               >
                 {monthAdv > 0 ? formatCurrency(monthAdv) : '₹0'}
               </span>
             </div>
             <div>
-              <span className="text-slate-400 block text-[10px] font-medium">Loan Due</span>
+              <span className="text-slate-900 block text-[11px] font-bold uppercase tracking-wider">Loan Due</span>
               <span
-                className={`font-mono font-bold ${
-                  loanBal > 0 ? 'text-rose-700' : 'text-slate-400'
+                className={`font-mono font-bold text-sm ${
+                  loanBal > 0 ? 'text-amber-950' : 'text-slate-600'
                 }`}
               >
                 {loanBal > 0 ? formatCurrency(loanBal) : '₹0'}
               </span>
               {loanBal > 0 && member.autoLoanDeduct !== false && (
-                <span className="text-[9px] text-emerald-600 font-semibold block leading-tight">Auto-repay</span>
+                <span className="text-[10px] text-amber-900 font-semibold block leading-tight mt-0.5">Auto-repay</span>
               )}
             </div>
           </div>
 
           {/* Phone & WhatsApp Bar */}
           {member.phone && (
-            <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-              <span className="font-mono text-xs">{member.phone}</span>
+            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-900 font-bold">
+              <span className="font-mono text-xs sm:text-sm">{member.phone}</span>
               {cleanPhone && (
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
                   <a
                     href={`tel:${cleanPhone}`}
                     onClick={(e) => e.stopPropagation()}
-                    className="p-1.5 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                    className="p-1.5 text-slate-700 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors border border-slate-200/60"
                     title="Call"
                   >
                     <Phone className="w-3.5 h-3.5" />
@@ -241,7 +242,7 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                     target="_blank"
                     rel="noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                    className="p-1.5 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 rounded-lg transition-colors border border-emerald-200/60"
                     title="WhatsApp"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
@@ -252,36 +253,25 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
           )}
         </div>
 
-        {/* Card Action Buttons: Edit, Delete */}
-        <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-          <span className="text-[11px] font-medium text-slate-400 group-hover:text-emerald-700 transition-colors flex items-center gap-1">
-            <span>Tap card for details</span>
-            <ArrowUpRight className="w-3 h-3 text-emerald-600" />
+        {/* Card Action Buttons: View Profile, Edit */}
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+          <span className="text-xs font-semibold text-emerald-800 group-hover:text-emerald-950 transition-colors flex items-center gap-1">
+            <span>View Full Details</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-emerald-600" />
           </span>
 
           <div className="flex items-center gap-1.5">
-            {/* Edit Button */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 onEditStaff(member);
               }}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all btn-press shadow-2xs cursor-pointer"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-800 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-all btn-press shadow-2xs cursor-pointer"
               title="Edit profile"
             >
               <Edit2 className="w-3.5 h-3.5" />
               <span>Edit</span>
-            </button>
-
-            {/* Delete Button */}
-            <button
-              type="button"
-              onClick={(e) => handleDeleteStaff(e, member)}
-              className="p-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all btn-press shadow-2xs cursor-pointer"
-              title="Delete staff member"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -290,105 +280,69 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-
+    <div className="space-y-5">
       {/* 2. Controls & Search Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-3.5">
+      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3.5">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Search Input with Clear Button */}
           <div className="relative flex-1 max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name, role, ID, or phone number..."
-              className="w-full pl-10 pr-9 py-2 text-xs bg-slate-50/70 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all"
+              className="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm font-medium bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-500 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-2xs"
             />
             {searchTerm && (
               <button
                 type="button"
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-600 rounded-full"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-slate-500 hover:text-slate-800 rounded-full cursor-pointer"
                 title="Clear search"
               >
-                <X className="w-3.5 h-3.5" />
+                <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
           {/* Right Controls: Month Selector, Status Switcher, View Toggle, Add Staff */}
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             {/* Active Month Selector */}
-            <div className="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl p-1 shadow-2xs">
+            <div className="flex items-center gap-1 bg-slate-50 border border-slate-300 rounded-xl p-1 shadow-2xs">
               <button
                 type="button"
                 onClick={() => handleShiftMonth(-1)}
-                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition-colors"
+                className="p-1.5 text-slate-700 hover:text-slate-950 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
                 title="Previous Month"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
               <input
                 type="month"
                 value={selectedMonth}
                 onChange={(e) => setSelectedMonth(e.target.value)}
-                className="text-xs font-semibold px-2 py-0.5 border-0 focus:outline-hidden text-slate-900 bg-transparent cursor-pointer font-mono"
+                className="text-xs sm:text-sm font-bold px-2 py-0.5 border-0 focus:outline-hidden text-slate-900 bg-transparent cursor-pointer font-mono"
               />
               <button
                 type="button"
                 onClick={() => handleShiftMonth(1)}
-                className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-white rounded-lg transition-colors"
+                className="p-1.5 text-slate-700 hover:text-slate-950 hover:bg-slate-200 rounded-lg transition-colors cursor-pointer"
                 title="Next Month"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            {/* Status Filter */}
-            <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs font-semibold">
-              <button
-                type="button"
-                onClick={() => setSelectedStatus('all')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  selectedStatus === 'all'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                All
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedStatus('active')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  selectedStatus === 'active'
-                    ? 'bg-white text-emerald-800 shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Active
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedStatus('inactive')}
-                className={`px-2.5 py-1 rounded-lg transition-all ${
-                  selectedStatus === 'inactive'
-                    ? 'bg-white text-slate-900 shadow-2xs'
-                    : 'text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Inactive
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
 
             {/* View Mode Toggle (desktop only, mobile is auto card style) */}
-            <div className="hidden md:flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <div className="hidden md:flex items-center p-1 bg-slate-100 rounded-xl border border-slate-300">
               <button
                 type="button"
                 onClick={() => setViewMode('table')}
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'table' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  viewMode === 'table'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-950'
                 }`}
                 title="Dense Table View"
               >
@@ -398,7 +352,9 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                 type="button"
                 onClick={() => setViewMode('grid')}
                 className={`p-1.5 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'grid' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+                  viewMode === 'grid'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-950'
                 }`}
                 title="Card Grid View"
               >
@@ -408,90 +364,62 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
 
             <button
               onClick={onOpenAddStaff}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-sm shadow-emerald-700/20 ring-1 ring-emerald-500/30 transition-all btn-press"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+              <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Add Staff</span>
             </button>
           </div>
         </div>
-
-        {/* Role Pills Filter Bar */}
-        {roles.length > 2 && (
-          <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-0.5 no-scrollbar border-t border-slate-100 text-xs -mx-4 px-4 sm:mx-0 sm:px-0 touch-pan-x">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider shrink-0 mr-1">
-              Role:
-            </span>
-            {roles.map((r) => {
-              const isSelected = selectedRole === r;
-              return (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setSelectedRole(r)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                    isSelected
-                      ? 'bg-slate-900 text-white shadow-2xs'
-                      : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/70'
-                  }`}
-                >
-                  {r}
-                </button>
-              );
-            })}
-          </div>
-        )}
       </div>
 
       {/* 3. Results count & Hint */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 px-1 gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs font-semibold text-slate-700 px-1 gap-1">
         <div>
-          Showing <strong>{filteredStaff.length}</strong> of {staff.length} staff members
-          {searchTerm && <span> matching "{searchTerm}"</span>}
-        </div>
-        <div className="text-[11px] text-slate-400">
-          💡 Click or tap any staff card or row to view complete profile &amp; monthly ledger
+          Showing <strong className="text-slate-950 font-bold">{filteredStaff.length}</strong> of{' '}
+          <strong className="text-slate-950 font-bold">{staff.length}</strong> staff members
+          {searchTerm && <span className="text-emerald-700 font-bold"> matching "{searchTerm}"</span>}
         </div>
       </div>
 
       {/* 4. Content: Dense Table View or Modern Card Grid */}
       {filteredStaff.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-12 text-center shadow-xs">
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3 shadow-inner">
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-xs">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-3 shadow-inner">
             <Building className="w-7 h-7" />
           </div>
-          <h3 className="text-sm font-bold text-slate-900">No matching staff members found</h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+          <h3 className="text-sm sm:text-base font-bold text-slate-950">No matching staff members found</h3>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-sm mx-auto">
             {searchTerm || selectedRole !== 'All'
               ? 'Try adjusting your search keyword or selected role filters.'
               : 'Get started by creating your first employee profile.'}
           </p>
           <button
             onClick={onOpenAddStaff}
-            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-xs btn-press"
+            className="mt-4 inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl transition-all shadow-xs cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>Register New Staff</span>
           </button>
         </div>
       ) : viewMode === 'table' ? (
         <>
           {/* Desktop Table View (visible on md screens and up) */}
-          <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+          <div className="hidden md:block bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-                    <th className="py-3.5 px-4">Staff Profile</th>
-                    <th className="py-3.5 px-4">Compensation</th>
-                    <th className="py-3.5 px-4">Advances ({formatMonthName(selectedMonth).slice(0, 3)})</th>
-                    <th className="py-3.5 px-4">Loan Balance</th>
-                    <th className="py-3.5 px-4">Contact</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4 text-right">Actions</th>
+                  <tr className="bg-slate-100/90 border-b border-slate-200 text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                    <th className="py-4 px-4.5">Staff Profile</th>
+                    <th className="py-4 px-4.5">Compensation</th>
+                    <th className="py-4 px-4.5">Advances ({formatMonthName(selectedMonth).slice(0, 3)})</th>
+                    <th className="py-4 px-4.5">Loan Balance</th>
+                    <th className="py-4 px-4.5">Contact</th>
+                    <th className="py-4 px-4.5">Status</th>
+                    <th className="py-4 px-4.5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-xs">
+                <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
                   {filteredStaff.map((member) => {
                     const cleanPhone = member.phone?.replace(/[^0-9]/g, '');
                     const loanBal = getStaffLoanBalance(member.id);
@@ -501,42 +429,42 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                       <tr
                         key={member.id}
                         onClick={() => setSelectedStaffForDetails(member)}
-                        className="hover:bg-emerald-50/30 transition-all group cursor-pointer"
+                        className="hover:bg-slate-50/80 transition-all group cursor-pointer"
                         title="Click row to open complete details & ledger"
                       >
                         {/* Column 1: Staff Profile */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
+                        <td className="py-4 px-4.5 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="relative shrink-0">
-                              <StaffAvatar name={member.name} photo={member.photo} size="sm" />
+                              <StaffAvatar name={member.name} photo={member.photo} size="md" />
                               <span
-                                className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-white ${
+                                className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border border-white ${
                                   member.status !== 'inactive' ? 'bg-emerald-500' : 'bg-slate-400'
                                 }`}
                               />
                             </div>
                             <div className="min-w-0">
-                              <div className="font-bold text-slate-900 group-hover:text-emerald-700 transition-colors flex items-center gap-1.5">
+                              <div className="font-bold text-sm sm:text-base text-slate-950 group-hover:text-emerald-700 transition-colors flex items-center gap-1.5">
                                 <span>{member.name}</span>
-                                <span className="text-[10px] text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity font-semibold inline-flex items-center gap-0.5">
+                                <span className="text-[11px] text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity font-bold inline-flex items-center gap-0.5">
                                   <span>Details</span>
-                                  <ArrowUpRight className="w-2.5 h-2.5" />
+                                  <ArrowUpRight className="w-3 h-3" />
                                 </span>
                               </div>
-                              <div className="flex items-center gap-1.5 mt-0.5">
+                              <div className="flex items-center gap-2 mt-1">
                                 <span
                                   onClick={(e) => handleCopyId(e, member.id)}
-                                  className="font-mono text-[10px] text-slate-400 hover:text-slate-700 bg-slate-100 px-1.5 py-0.2 rounded transition-colors inline-flex items-center gap-0.5 shrink-0"
+                                  className="font-mono text-xs font-bold text-slate-800 hover:text-black bg-slate-100 hover:bg-slate-200 border border-slate-300 px-2 py-0.5 rounded-md transition-colors inline-flex items-center gap-1 shrink-0"
                                   title="Click to copy ID"
                                 >
                                   {member.id}
                                   {copiedId === member.id ? (
-                                    <Check className="w-2.5 h-2.5 text-emerald-600" />
+                                    <Check className="w-3 h-3 text-emerald-600" />
                                   ) : (
-                                    <Copy className="w-2.5 h-2.5 opacity-60" />
+                                    <Copy className="w-3 h-3 text-slate-600" />
                                   )}
                                 </span>
-                                <span className="text-[11px] text-slate-500">
+                                <span className="text-xs font-semibold text-slate-700">
                                   {member.designation}
                                 </span>
                               </div>
@@ -545,58 +473,72 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                         </td>
 
                         {/* Column 2: Compensation */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
-                          <div className="font-mono font-semibold text-slate-900">
+                        <td className="py-4 px-4.5 whitespace-nowrap">
+                          <div className="font-mono font-bold text-sm sm:text-base text-slate-950">
                             {formatCurrency(member.wage || 0)}
-                            <span className="text-[10px] text-slate-400 font-sans font-normal">/day</span>
+                            <span className="text-xs font-bold text-slate-600 font-sans ml-1">/ day</span>
                           </div>
-                          <div className="text-[10px] text-slate-500 font-mono mt-0.5">
-                            OT: {formatCurrency(member.otRate || 0)}/hr
+                          <div className="text-xs font-bold text-slate-800 font-mono mt-0.5">
+                            <span className="text-slate-600 font-sans font-medium">OT: </span>
+                            {member.otRate > 0 ? (
+                              <>
+                                <span>{formatCurrency(member.otRate)}</span>
+                                <span className="text-slate-600 font-sans font-medium"> / hr</span>
+                              </>
+                            ) : (
+                              <span className="text-slate-500 font-sans font-normal">—</span>
+                            )}
                           </div>
                         </td>
 
                         {/* Column 3: Month Advances */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
+                        <td className="py-4 px-4.5 whitespace-nowrap">
                           {monthAdv > 0 ? (
-                            <span className="font-mono font-semibold text-amber-700 bg-amber-50 border border-amber-200/80 px-2 py-0.5 rounded-lg text-xs">
-                              {formatCurrency(monthAdv)}
+                            <span className="inline-flex items-center gap-1.5 font-mono font-bold text-xs sm:text-sm text-purple-950 bg-purple-50 border border-purple-300 px-2.5 py-1 rounded-lg shadow-2xs">
+                              <Wallet className="w-3.5 h-3.5 text-purple-600" />
+                              <span>{formatCurrency(monthAdv)}</span>
                             </span>
                           ) : (
-                            <span className="text-slate-400 text-xs">—</span>
+                            <span className="text-xs font-semibold text-slate-500 font-mono">—</span>
                           )}
                         </td>
 
                         {/* Column 4: Loan Balance */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
+                        <td className="py-4 px-4.5 whitespace-nowrap">
                           {loanBal > 0 ? (
                             <div className="flex flex-col items-start gap-0.5">
-                              <div className="inline-flex items-center gap-1 font-mono font-semibold text-rose-700 bg-rose-50 border border-rose-200/80 px-2 py-0.5 rounded-lg text-xs">
+                              <div className="inline-flex items-center gap-1.5 font-mono font-bold text-xs sm:text-sm text-amber-950 bg-amber-50 border border-amber-300 px-2.5 py-1 rounded-lg shadow-2xs">
+                                <CreditCard className="w-3.5 h-3.5 text-amber-600" />
                                 <span>{formatCurrency(loanBal)}</span>
-                                <span className="text-[10px] font-sans font-bold text-rose-500">due</span>
+                                <span className="text-[10px] font-sans font-bold text-amber-800 bg-amber-100 px-1 py-0.2 rounded">
+                                  due
+                                </span>
                               </div>
-                              <span className="text-[10px] text-slate-500 font-medium">
+                              <span className="text-xs text-slate-700 font-medium mt-0.5">
                                 {member.autoLoanDeduct !== false
                                   ? `Auto: ₹${(member.monthlyLoanDeduction && member.monthlyLoanDeduction > 0 ? member.monthlyLoanDeduction : loanBal).toLocaleString('en-IN')}/mo`
                                   : 'Manual only'}
                               </span>
                             </div>
                           ) : (
-                            <span className="text-slate-400 text-xs font-mono">None</span>
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+                              None
+                            </span>
                           )}
                         </td>
 
                         {/* Column 5: Contact */}
-                        <td className="py-3.5 px-4 whitespace-nowrap text-slate-700">
+                        <td className="py-4 px-4.5 whitespace-nowrap">
                           {member.phone ? (
                             <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs">{member.phone}</span>
+                              <span className="font-mono font-bold text-xs sm:text-sm text-slate-900">{member.phone}</span>
                               {cleanPhone && (
-                                <div className="inline-flex items-center gap-1">
+                                <div className="flex items-center gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                                   <a
                                     href={`tel:${cleanPhone}`}
                                     onClick={(e) => e.stopPropagation()}
-                                    className="p-1 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
-                                    title="Voice Call"
+                                    className="p-1 text-slate-700 hover:text-blue-700 hover:bg-blue-50 rounded-md transition-colors border border-slate-200/60"
+                                    title="Call"
                                   >
                                     <Phone className="w-3.5 h-3.5" />
                                   </a>
@@ -605,8 +547,8 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                                     target="_blank"
                                     rel="noreferrer"
                                     onClick={(e) => e.stopPropagation()}
-                                    className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                                    title="WhatsApp Chat"
+                                    className="p-1 text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 rounded-md transition-colors border border-emerald-200/60"
+                                    title="WhatsApp"
                                   >
                                     <MessageCircle className="w-3.5 h-3.5" />
                                   </a>
@@ -614,47 +556,56 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                               )}
                             </div>
                           ) : (
-                            <span className="text-slate-400">—</span>
+                            <span className="text-xs font-semibold text-slate-500">—</span>
                           )}
                         </td>
 
                         {/* Column 6: Status */}
-                        <td className="py-3.5 px-4 whitespace-nowrap">
+                        <td className="py-4 px-4.5 whitespace-nowrap">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border shadow-2xs ${
                               member.status !== 'inactive'
-                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                : 'bg-slate-100 text-slate-600 border-slate-200'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                : 'bg-slate-100 text-slate-700 border-slate-300'
                             }`}
                           >
-                            {member.status !== 'inactive' ? 'Active' : 'Inactive'}
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                member.status !== 'inactive' ? 'bg-emerald-600' : 'bg-slate-500'
+                              }`}
+                            />
+                            <span>{member.status !== 'inactive' ? 'Active' : 'Inactive'}</span>
                           </span>
                         </td>
 
-                        {/* Column 7: Actions (Edit, Delete) */}
-                        <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {/* 1. Edit Button */}
+                        {/* Column 7: Actions (View Details & Edit) */}
+                        <td className="py-4 px-4.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-2">
+                            {/* 1. Quick View Details */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedStaffForDetails(member);
+                              }}
+                              className="px-2.5 py-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-xl transition-all inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                              title="View Full Staff Record & Ledger"
+                            >
+                              <span>View</span>
+                              <ArrowUpRight className="w-3 h-3 text-emerald-700" />
+                            </button>
+
+                            {/* 2. Edit Button */}
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onEditStaff(member);
                               }}
-                              className="p-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition-all inline-flex items-center justify-center btn-press shadow-2xs cursor-pointer"
+                              className="p-2 text-xs font-semibold text-slate-700 hover:text-slate-950 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded-xl transition-all inline-flex items-center justify-center btn-press shadow-2xs cursor-pointer"
                               title="Edit Staff Profile"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
-                            </button>
-
-                            {/* 2. Delete Button */}
-                            <button
-                              type="button"
-                              onClick={(e) => handleDeleteStaff(e, member)}
-                              className="p-1.5 text-xs font-semibold text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200/80 rounded-xl transition-all inline-flex items-center justify-center btn-press shadow-2xs cursor-pointer"
-                              title="Delete Staff Member"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>

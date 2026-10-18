@@ -129,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="hidden xs:inline">{isBackendConnected ? 'Online' : 'Offline'}</span>
                 </span>
               </div>
-              <p className="text-[11px] text-slate-500 truncate hidden sm:block">
+              <p className="text-xs text-slate-700 font-medium truncate hidden sm:block">
                 Staff Attendance, Advances &amp; Salary Ledger
               </p>
             </div>
@@ -138,8 +138,8 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Right Action Tools */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Live Today Badge */}
-            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700 border border-slate-200/80">
-              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-900 border border-slate-300 shadow-2xs">
+              <Calendar className="w-3.5 h-3.5 text-slate-700" />
               <span>{todayFormatted}</span>
             </div>
 
@@ -147,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onOpenAddStaff}
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer shrink-0"
             >
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
               <span className="hidden xs:inline">Add Staff</span>
@@ -159,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onOpenSettings}
               title="System & Company Settings"
-              className="p-1.5 sm:p-2 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+              className="p-1.5 sm:p-2 text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
             >
               <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
@@ -177,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
                 }
               }}
               title="Reset fresh start (Shree Lakshmi Bhavan defaults)"
-              className="p-1.5 sm:p-2 text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+              className="p-1.5 sm:p-2 text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
             >
               <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
@@ -198,17 +198,17 @@ export const Header: React.FC<HeaderProps> = ({
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer relative ${
                   isActive
                     ? 'bg-slate-900 text-white shadow-xs'
-                    : 'text-slate-600 bg-slate-50/80 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/60'
+                    : 'text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 hover:text-slate-950 border border-slate-200'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-500'}`} />
+                <Icon className={`w-3.5 h-3.5 shrink-0 ${isActive ? 'text-emerald-400' : 'text-slate-600'}`} />
                 <span className="hidden sm:inline">{item.label}</span>
                 <span className="sm:hidden">{item.shortLabel}</span>
 
                 {item.badge && (
                   <span
                     className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold font-mono tracking-tight shrink-0 ${
-                      isActive ? 'bg-white/20 text-white' : item.badgeColor || 'bg-slate-200 text-slate-700'
+                      isActive ? 'bg-white/20 text-white' : item.badgeColor || 'bg-slate-200 text-slate-800'
                     }`}
                   >
                     {item.badge}
