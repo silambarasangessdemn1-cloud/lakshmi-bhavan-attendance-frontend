@@ -90,13 +90,11 @@ const MainLayout: React.FC = () => {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenAddStaff={handleOpenAddStaff}
-        onOpenAdvance={() => handleOpenAdvance()}
-        onOpenLoan={() => handleOpenLoan()}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
       />
 
       {/* Main Workspace (Initial Home View is Staff List) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 transition-all">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 transition-all">
         {activeTab === 'staff' && (
           <StaffDirectoryView
             onEditStaff={handleEditStaff}

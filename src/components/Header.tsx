@@ -8,8 +8,6 @@ import {
   Plus,
   RotateCcw,
   Calendar,
-  Sparkles,
-  Layers,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 
@@ -19,8 +17,6 @@ interface HeaderProps {
   activeTab: ActiveTab;
   onTabChange: (tab: ActiveTab) => void;
   onOpenAddStaff: () => void;
-  onOpenAdvance: () => void;
-  onOpenLoan: () => void;
   onOpenSettings: () => void;
 }
 
@@ -28,8 +24,6 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   onTabChange,
   onOpenAddStaff,
-  onOpenAdvance,
-  onOpenLoan,
   onOpenSettings,
 }) => {
   const {
@@ -95,23 +89,23 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="no-print sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Top Tier: Brand, Live Sync, Global Actions */}
-        <div className="flex items-center justify-between gap-3 h-16">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 h-14 sm:h-16">
           {/* Brand & Identity */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-black text-sm shadow-md shadow-emerald-500/20 ring-2 ring-emerald-500/20 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-500/20 ring-2 ring-emerald-500/20 shrink-0">
               <span className="tracking-tight">SLB</span>
             </div>
 
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="text-base sm:text-lg font-black text-slate-900 tracking-tight truncate">
+            <div className="min-w-0 flex-1 sm:flex-initial">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <h1 className="text-sm sm:text-base lg:text-lg font-black text-slate-900 tracking-tight truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none">
                   {settings.companyName || 'Shree Lakshmi Bhavan'}
                 </h1>
                 {/* Cloud Sync Status Indicator */}
                 <span
-                  className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors ${
+                  className={`inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-bold border transition-colors shrink-0 ${
                     isBackendConnected
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                       : 'bg-amber-50 text-amber-800 border-amber-200'
@@ -132,7 +126,7 @@ export const Header: React.FC<HeaderProps> = ({
                       }`}
                     />
                   </span>
-                  <span>{isBackendConnected ? 'Online' : 'Offline'}</span>
+                  <span className="hidden xs:inline">{isBackendConnected ? 'Online' : 'Offline'}</span>
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 truncate hidden sm:block">
@@ -142,43 +136,22 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Action Tools */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Live Today Badge */}
             <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-semibold text-slate-700 border border-slate-200/80">
               <Calendar className="w-3.5 h-3.5 text-slate-400" />
               <span>{todayFormatted}</span>
             </div>
 
-            {/* Quick Record Advance */}
-            <button
-              type="button"
-              onClick={onOpenAdvance}
-              title="Record mid-month salary advance"
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-xl transition-all shadow-2xs cursor-pointer"
-            >
-              <Wallet className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">+ Advance</span>
-            </button>
-
-            {/* Quick Issue Loan */}
-            <button
-              type="button"
-              onClick={onOpenLoan}
-              title="Disburse or manage staff loan"
-              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all shadow-2xs cursor-pointer"
-            >
-              <CreditCard className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">+ Loan</span>
-            </button>
-
             {/* Add Staff primary button */}
             <button
               type="button"
               onClick={onOpenAddStaff}
-              className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer shrink-0"
             >
-              <Plus className="w-4 h-4 stroke-[2.5]" />
-              <span>Add Staff</span>
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+              <span className="hidden xs:inline">Add Staff</span>
+              <span className="xs:hidden">Staff</span>
             </button>
 
             {/* Settings */}
@@ -186,9 +159,9 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onOpenSettings}
               title="System & Company Settings"
-              className="p-2 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-2xs cursor-pointer"
+              className="p-1.5 sm:p-2 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
             >
-              <Sliders className="w-4 h-4" />
+              <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
             {/* Reset / Fresh Start button */}
@@ -204,15 +177,15 @@ export const Header: React.FC<HeaderProps> = ({
                 }
               }}
               title="Reset fresh start (Shree Lakshmi Bhavan defaults)"
-              className="p-2 text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-2xs cursor-pointer"
+              className="p-1.5 sm:p-2 text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
           </div>
         </div>
 
-        {/* Bottom Tier: Top-Level Single-Page Navigation Tabs */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-2.5 border-t border-slate-100 no-scrollbar">
+        {/* Bottom Tier: Top-Level Single-Page Navigation Tabs with edge-to-edge mobile scrolling */}
+        <div className="flex items-center gap-1.5 overflow-x-auto py-2 sm:py-2.5 border-t border-slate-100 no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0 touch-pan-x scroll-smooth">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -222,7 +195,7 @@ export const Header: React.FC<HeaderProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => onTabChange(item.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer relative ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer relative ${
                   isActive
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-600 bg-slate-50/80 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/60'
@@ -234,7 +207,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {item.badge && (
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold font-mono tracking-tight ${
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold font-mono tracking-tight shrink-0 ${
                       isActive ? 'bg-white/20 text-white' : item.badgeColor || 'bg-slate-200 text-slate-700'
                     }`}
                   >
