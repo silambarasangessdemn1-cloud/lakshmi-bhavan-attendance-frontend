@@ -63,22 +63,7 @@ export const Header: React.FC<HeaderProps> = ({
       badge: activeStaffCount > 0 ? `${activeStaffCount} active` : undefined,
       badgeColor: 'bg-blue-100 text-blue-800',
     },
-    {
-      id: 'advances' as ActiveTab,
-      label: 'Salary Advances',
-      shortLabel: 'Advances',
-      icon: Wallet,
-      badge: monthAdvancesCount > 0 ? `${monthAdvancesCount} this mo` : undefined,
-      badgeColor: 'bg-purple-100 text-purple-800',
-    },
-    {
-      id: 'loans' as ActiveTab,
-      label: 'Loans & EMI',
-      shortLabel: 'Loans',
-      icon: CreditCard,
-      badge: activeLoansCount > 0 ? `${activeLoansCount} active` : undefined,
-      badgeColor: 'bg-amber-100 text-amber-800',
-    },
+   
   ];
 
   const todayFormatted = new Intl.DateTimeFormat('en-US', {
