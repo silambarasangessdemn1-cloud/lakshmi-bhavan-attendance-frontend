@@ -72,6 +72,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
   const [copiedAccount, setCopiedAccount] = useState(false);
   const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
   const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
+  const [advanceModalType, setAdvanceModalType] = useState<'advance' | 'advance_repay'>('advance');
   const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
   const [loanModalType, setLoanModalType] = useState<'loan_issue' | 'loan_repay'>('loan_issue');
 
@@ -274,12 +275,18 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
             <div className="flex flex-wrap items-center gap-2 ml-auto">
               <button
                 type="button"
-                onClick={() => setIsAdvanceModalOpen(true)}
+                onClick={() => {
+                  setAdvanceModalType('advance');
+                  setIsAdvanceModalOpen(true);
+                }}
                 className="px-3 py-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-lg shadow-2xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-                title="Record salary advance for this staff member"
+                title={`Record salary advance (Month Advance: ${formatCurrency(currentMonthAdvances)})`}
               >
                 <Wallet className="w-3.5 h-3.5 text-purple-600" />
-                <span>+ Add Advance</span>
+                <span>+Advance</span>
+                <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-purple-200/80 text-purple-950">
+                  {formatCurrency(currentMonthAdvances)}
+                </span>
               </button>
 
               <button
@@ -289,10 +296,13 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   setIsLoanModalOpen(true);
                 }}
                 className="px-3 py-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg shadow-2xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
-                title="Issue loan for this staff member"
+                title={`Issue loan (Active Loan: ${formatCurrency(loanBal)})`}
               >
                 <CreditCard className="w-3.5 h-3.5 text-amber-600" />
-                <span>+ Add Loan</span>
+                <span>+ Loan</span>
+                <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-amber-200/80 text-amber-950">
+                  {formatCurrency(loanBal)}
+                </span>
               </button>
 
               <button
@@ -475,7 +485,19 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   <div>
                     <div className="flex items-center justify-between gap-1">
                       <span className="text-[10px] text-blue-950 font-bold uppercase block">Month Advance</span>
-                    
+                      {currentMonthAdvances > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAdvanceModalType('advance_repay');
+                            setIsAdvanceModalOpen(true);
+                          }}
+                          className="text-[10px] font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-100 hover:bg-emerald-200 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+                          title="Repay advance amount"
+                        >
+                          Repay
+                        </button>
+                      )}
                     </div>
                     <span className="text-base font-bold font-mono text-blue-900 mt-1 block">
                       {formatCurrency(currentMonthAdvances)}
@@ -536,7 +558,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   )}
                 </div>
 
-                <button
+                {/* <button
                   type="button"
                   onClick={() => {
                     onClose();
@@ -545,7 +567,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   className="text-xs font-bold text-blue-700 hover:text-blue-800 underline flex items-center gap-1 cursor-pointer"
                 >
                   <span>Settle & record disbursement in Salary Studio &rarr;</span>
-                </button>
+                </button> */}
               </div>
             </div>
 
@@ -575,6 +597,20 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                     >
                       <HandCoins className="w-3.5 h-3.5 text-emerald-600" />
                       <span>Repay Loan</span>
+                    </button>
+                  )}
+                  {currentMonthAdvances > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAdvanceModalType('advance_repay');
+                        setIsAdvanceModalOpen(true);
+                      }}
+                      className="px-2.5 py-1 text-xs font-semibold text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
+                      title="Record advance repayment"
+                    >
+                      <HandCoins className="w-3.5 h-3.5 text-purple-600" />
+                      <span>Repay Advance</span>
                     </button>
                   )}
                 </div>
@@ -617,6 +653,8 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                             className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                               item.type === 'advance'
                                 ? 'bg-blue-100 text-blue-800'
+                                : item.type === 'advance_repay'
+                                ? 'bg-emerald-100 text-emerald-800'
                                 : item.type === 'loan_issue'
                                 ? 'bg-amber-100 text-amber-800'
                                 : 'bg-emerald-100 text-emerald-800'
@@ -624,6 +662,8 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                           >
                             {item.type === 'advance'
                               ? 'Advance'
+                              : item.type === 'advance_repay'
+                              ? 'Advance Repaid'
                               : item.type === 'loan_issue'
                               ? 'Loan Issued'
                               : 'Loan Repaid'}
@@ -645,6 +685,8 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                             const label =
                               item.type === 'advance'
                                 ? 'advance'
+                                : item.type === 'advance_repay'
+                                ? 'advance repayment'
                                 : item.type === 'loan_issue'
                                 ? 'loan issue'
                                 : 'loan repay';
@@ -733,7 +775,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
           isOpen={isAdvanceModalOpen}
           onClose={() => setIsAdvanceModalOpen(false)}
           staff={staff}
-          defaultType="advance"
+          defaultType={advanceModalType}
           mode="advance"
         />
       )}

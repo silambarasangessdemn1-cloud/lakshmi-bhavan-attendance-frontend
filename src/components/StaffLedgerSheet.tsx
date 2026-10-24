@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Clock,
@@ -14,11 +14,22 @@ import {
   Sparkles,
   ArrowDownRight,
   ShieldCheck,
+  Check,
+  Pencil,
+  Trash2,
+  QrCode,
+  Banknote,
+  Landmark,
 } from 'lucide-react';
-import { StaffMember, AttendanceRecord } from '../types';
+import { StaffMember, AttendanceRecord, PaymentMethod } from '../types';
 import { useStaff } from '../context/StaffContext';
 import { StaffAvatar } from './StaffAvatar';
-import { formatCurrency, formatMonthName, formatDatePretty } from '../utils/formatters';
+import {
+  formatCurrency,
+  formatMonthName,
+  formatDatePretty,
+  getTodayDateString,
+} from '../utils/formatters';
 
 interface StaffLedgerSheetProps {
   staff: StaffMember;
@@ -31,6 +42,10 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
     getStaffLoanAdvanceEntries,
     getStaffLoanBalance,
     calculateStaffPayroll,
+    payments,
+    recordPayment,
+    deletePayment,
+    showToast,
     settings,
   } = useStaff();
 
@@ -46,7 +61,12 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
   );
 
   const advanceEntries = loanAdvanceEntries.filter((e) => e.type === 'advance');
-  const totalAdvances = advanceEntries.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const advanceRepayEntries = loanAdvanceEntries.filter((e) => e.type === 'advance_repay');
+  const totalAdvances = Math.max(
+    0,
+    advanceEntries.reduce((sum, e) => sum + (e.amount || 0), 0) -
+    advanceRepayEntries.reduce((sum, e) => sum + (e.amount || 0), 0)
+  );
   const activeLoanBal = getStaffLoanBalance(staff.id);
 
   const payroll = calculateStaffPayroll(staff.id, month);
@@ -54,6 +74,34 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
   const currentLoanDeduction = payroll ? payroll.currentLoanDeduction : 0;
   const netTotal = payroll ? payroll.netPayable : Math.max(0, grossSalary - totalAdvances - currentLoanDeduction);
   const remainingLoanAfterDeduct = Math.max(0, activeLoanBal - currentLoanDeduction);
+
+  // Settlement Form State
+  const existingPayment = payments.find((p) => p.staffId === staff.id && p.month === month);
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(
+    existingPayment?.paymentMethod || 'Cash'
+  );
+  const [paymentDate, setPaymentDate] = useState<string>(
+    existingPayment?.date || getTodayDateString()
+  );
+  const [paymentNotes, setPaymentNotes] = useState<string>(
+    existingPayment?.notes || ''
+  );
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (existingPayment) {
+      setSelectedMethod(existingPayment.paymentMethod || 'Cash');
+      setPaymentDate(existingPayment.date || getTodayDateString());
+      setPaymentNotes(existingPayment.notes || '');
+      setIsEditing(false);
+    } else {
+      setSelectedMethod('Cash');
+      setPaymentDate(getTodayDateString());
+      setPaymentNotes('');
+      setIsEditing(false);
+    }
+  }, [existingPayment?.id, existingPayment?.date, existingPayment?.paymentMethod, month]);
 
   // Compute attendance summary counts for the month
   let presentDays = 0;
@@ -432,7 +480,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          5. SETTLEMENT COMPUTATION & SIGN-OFF BLOCK
+          5. SETTLEMENT COMPUTATION CARD
       ───────────────────────────────────────────────────────────── */}
       <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-850 text-white shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5">
         <div className="space-y-1 text-center md:text-left">
@@ -475,6 +523,257 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
           </div>
         </div>
       </div>
+
+      {/* ─────────────────────────────────────────────────────────────
+          6. PROFESSIONAL SALARY DISBURSEMENT & SETTLEMENT ACTION CARD
+      ───────────────────────────────────────────────────────────── */}
+      {existingPayment && !isEditing ? (
+        /* Verified Paid Receipt Card */
+        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-emerald-200/90 shadow-2xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-start sm:items-center gap-3.5">
+              <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-800 shrink-0">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-bold text-slate-900">
+                    Salary Settled &amp; Disbursed
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    Paid
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
+                    {existingPayment.paymentMethod === 'UPI' && <QrCode className="w-3 h-3 text-purple-600" />}
+                    {existingPayment.paymentMethod === 'Cash' && <Banknote className="w-3 h-3 text-emerald-600" />}
+                    {existingPayment.paymentMethod === 'Bank Transfer' && <Landmark className="w-3 h-3 text-blue-600" />}
+                    <span>{existingPayment.paymentMethod}</span>
+                  </span>
+                </div>
+                <div className="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+                  <span>
+                    Disbursed on: <strong className="text-slate-800">{formatDatePretty(existingPayment.date)}</strong>
+                  </span>
+                  <span>•</span>
+                  <span>
+                    Amount: <strong className="font-mono text-emerald-700 text-sm">{formatCurrency(existingPayment.net)}</strong>
+                  </span>
+                  {existingPayment.notes && (
+                    <>
+                      <span>•</span>
+                      <span className="italic text-slate-600">"{existingPayment.notes}"</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Edit</span>
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const confirmed = window.confirm(
+                    `Remove salary payment of ${formatCurrency(existingPayment.net)} for ${staff.name} (${formatMonthName(month)})?\nThis will mark the salary as unpaid.`
+                  );
+                  if (confirmed) {
+                    await deletePayment(existingPayment.id);
+                    showToast(`Settlement record removed. Salary marked unpaid.`, 'info');
+                  }
+                }}
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                title="Delete payment record"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Settlement Input Form Card */
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div className="flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-purple-50 text-purple-700">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+                  {existingPayment ? 'Update Salary Settlement' : 'Salary Settlement & Payout'}
+                </h4>
+                <p className="text-[11px] text-slate-500">
+                  Record official disbursement of {formatCurrency(netTotal)} to {staff.name} for {formatMonthName(month)}
+                </p>
+              </div>
+            </div>
+
+            {existingPayment && (
+              <button
+                type="button"
+                onClick={() => setIsEditing(false)}
+                className="text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+
+          <form
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setIsSubmitting(true);
+              try {
+                await recordPayment({
+                  date: paymentDate,
+                  month: month,
+                  staffId: staff.id,
+                  staffName: staff.name,
+                  dailyWage: staff.wage,
+                  daysPresent: payroll ? payroll.effectiveDays : presentDays + halfDays * 0.5,
+                  otHours: payroll ? payroll.otHours : totalOtHours,
+                  otRate: staff.otRate,
+                  otEarnings: payroll ? payroll.otEarnings : totalOtHours * staff.otRate,
+                  gross: grossSalary,
+                  advance: totalAdvances,
+                  loanDeduct: currentLoanDeduction,
+                  net: netTotal,
+                  status: 'Paid',
+                  paymentMethod: selectedMethod,
+                  notes: paymentNotes.trim() || `${selectedMethod} salary settlement for ${formatMonthName(month)}`,
+                });
+
+                showToast(
+                  `Salary of ${formatCurrency(netTotal)} settled via ${selectedMethod} for ${staff.name}`,
+                  'success',
+                  'Salary Settled'
+                );
+                setIsEditing(false);
+              } catch (err: any) {
+                showToast(err.message || 'Failed to record settlement', 'error');
+              } finally {
+                setIsSubmitting(false);
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Payment Method Selector (UPI / Cash / Bank Transfer) */}
+              <div className="sm:col-span-2 lg:col-span-1">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Payment Method <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMethod('UPI')}
+                    className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      selectedMethod === 'UPI'
+                        ? 'bg-white text-purple-900 shadow-xs border border-purple-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <QrCode className="w-3.5 h-3.5 text-purple-600" />
+                    <span>UPI</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMethod('Cash')}
+                    className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      selectedMethod === 'Cash'
+                        ? 'bg-white text-emerald-900 shadow-xs border border-emerald-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Cash</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedMethod('Bank Transfer')}
+                    className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                      selectedMethod === 'Bank Transfer'
+                        ? 'bg-white text-blue-900 shadow-xs border border-blue-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Landmark className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Bank</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Payment Date */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Settlement Date <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative">
+                  <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    type="date"
+                    required
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 text-xs font-bold text-slate-900 border border-slate-300 rounded-xl bg-white focus:outline-hidden focus:border-purple-600"
+                  />
+                </div>
+              </div>
+
+              {/* Remarks / Reference Notes */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
+                  Remarks / Ref ID
+                </label>
+                <input
+                  type="text"
+                  value={paymentNotes}
+                  onChange={(e) => setPaymentNotes(e.target.value)}
+                  placeholder={
+                    selectedMethod === 'UPI'
+                      ? 'e.g. GPay / PhonePe Txn ID'
+                      : selectedMethod === 'Cash'
+                      ? 'e.g. Handed over cash'
+                      : 'e.g. NEFT / IMPS ref'
+                  }
+                  className="w-full px-3 py-2 text-xs text-slate-900 border border-slate-300 rounded-xl bg-white focus:outline-hidden focus:border-purple-600"
+                />
+              </div>
+            </div>
+
+            {/* Settle Action Bar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
+              <div className="text-xs text-slate-500">
+                Net settlement amount:{' '}
+                <span className="font-mono font-black text-sm text-slate-900">
+                  {formatCurrency(netTotal)}
+                </span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-5 py-2.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] rounded-xl shadow-xs transition-all inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Check className="w-4 h-4" />
+                <span>
+                  {existingPayment
+                    ? `Update Settlement (${formatCurrency(netTotal)})`
+                    : `Mark Paid via ${selectedMethod} (${formatCurrency(netTotal)})`}
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Sign-Off Signature Line (Print / Official Record) */}
       {/* <div className="pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-xs text-slate-500">

@@ -401,9 +401,13 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const getStaffAdvancesForMonth = (staffId: string, month: string): number => {
-    return loanAdvances
+    const issued = loanAdvances
       .filter((l) => l.staffId === staffId && l.type === 'advance' && l.month === month)
       .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
+    const repaid = loanAdvances
+      .filter((l) => l.staffId === staffId && l.type === 'advance_repay' && l.month === month)
+      .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
+    return Math.max(0, issued - repaid);
   };
 
   // Loan Balance calculation

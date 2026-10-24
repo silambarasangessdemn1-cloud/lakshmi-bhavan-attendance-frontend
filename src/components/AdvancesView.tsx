@@ -58,9 +58,29 @@ export const AdvancesView: React.FC<AdvancesViewProps> = ({
     setSelectedMonth(`${newY}-${newM}`);
   };
 
-  // Filter only 'advance' entries
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return;
+      const cleanQ = q.replace(/[^a-z0-9]/g, '');
+      const matched =
+        staff.find((s) => s.id.trim().toLowerCase() === q) ||
+        (cleanQ ? staff.find((s) => s.id.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanQ) : undefined) ||
+        staff.find((s) => s.name.trim().toLowerCase() === q) ||
+        staff.find((s) => s.id.toLowerCase().includes(q)) ||
+        staff.find((s) => s.name.toLowerCase().includes(q));
+
+      if (matched) {
+        onViewStaffDetails(matched);
+      } else {
+        showToast(`No staff member found matching "${searchQuery.trim()}"`, 'error');
+      }
+    }
+  };
+
+  // Filter 'advance' and 'advance_repay' entries
   const allAdvances = useMemo(() => {
-    return loanAdvances.filter((l) => l.type === 'advance');
+    return loanAdvances.filter((l) => l.type === 'advance' || l.type === 'advance_repay');
   }, [loanAdvances]);
 
   const monthAdvances = useMemo(() => {
@@ -69,8 +89,14 @@ export const AdvancesView: React.FC<AdvancesViewProps> = ({
 
   // Aggregate stats
   const stats = useMemo(() => {
-    const totalMonth = monthAdvances.reduce((sum, a) => sum + (Number(a.amount) || 0), 0);
-    const totalAllTime = allAdvances.reduce((sum, a) => sum + (Number(a.amount) || 0), 0);
+    const totalMonth = monthAdvances.reduce((sum, a) => {
+      const amt = Number(a.amount) || 0;
+      return a.type === 'advance_repay' ? sum - amt : sum + amt;
+    }, 0);
+    const totalAllTime = allAdvances.reduce((sum, a) => {
+      const amt = Number(a.amount) || 0;
+      return a.type === 'advance_repay' ? sum - amt : sum + amt;
+    }, 0);
 
     const uniqueStaffIdsInMonth = new Set(monthAdvances.map((a) => a.staffId));
     const staffCount = uniqueStaffIdsInMonth.size;
@@ -81,19 +107,21 @@ export const AdvancesView: React.FC<AdvancesViewProps> = ({
 
     monthAdvances.forEach((adv) => {
       const isPaid = payments.some((p) => p.staffId === adv.staffId && p.month === adv.month);
+      const amt = Number(adv.amount) || 0;
+      const signedAmt = adv.type === 'advance_repay' ? -amt : amt;
       if (isPaid) {
-        deductedAmount += Number(adv.amount) || 0;
+        deductedAmount += signedAmt;
       } else {
-        pendingDeductions += Number(adv.amount) || 0;
+        pendingDeductions += signedAmt;
       }
     });
 
     return {
-      totalMonth,
-      totalAllTime,
+      totalMonth: Math.max(0, totalMonth),
+      totalAllTime: Math.max(0, totalAllTime),
       staffCount,
-      pendingDeductions,
-      deductedAmount,
+      pendingDeductions: Math.max(0, pendingDeductions),
+      deductedAmount: Math.max(0, deductedAmount),
       totalEntriesCount: monthAdvances.length,
     };
   }, [monthAdvances, allAdvances, payments]);
@@ -140,14 +168,17 @@ export const AdvancesView: React.FC<AdvancesViewProps> = ({
       const member = staff.find((s) => s.id === adv.staffId);
       if (!member) return;
 
+      const amt = Number(adv.amount) || 0;
+      const signedAmt = adv.type === 'advance_repay' ? -amt : amt;
+
       const existing = map.get(member.id);
       if (existing) {
-        existing.totalAmount += Number(adv.amount) || 0;
+        existing.totalAmount += signedAmt;
         existing.count += 1;
       } else {
         map.set(member.id, {
           staff: member,
-          totalAmount: Number(adv.amount) || 0,
+          totalAmount: signedAmt,
           count: 1,
         });
       }
@@ -419,7 +450,8 @@ export const AdvancesView: React.FC<AdvancesViewProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by staff name, ID, notes..."
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search staff, ID... (Enter to open)"
               className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-hidden focus:bg-white focus:border-purple-600"
             />
           </div>
@@ -480,9 +512,21 @@ export const AdvancesView: React.FC<AdvancesViewProps> = ({
                     </td>
 
                     <td className="py-3.5 px-3">
-                      <span className="font-mono font-bold text-sm text-purple-900">
-                        {formatCurrency(entry.amount)}
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`font-mono font-bold text-sm ${
+                            entry.type === 'advance_repay' ? 'text-emerald-700' : 'text-purple-900'
+                          }`}
+                        >
+                          {entry.type === 'advance_repay' ? '-' : ''}
+                          {formatCurrency(entry.amount)}
+                        </span>
+                        {entry.type === 'advance_repay' && (
+                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded">
+                            Repaid
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="py-3.5 px-3 whitespace-nowrap text-slate-700 font-medium">

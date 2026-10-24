@@ -295,7 +295,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const recentActivities = useMemo(() => {
     const list: Array<{
       id: string;
-      type: 'advance' | 'loan_issue' | 'loan_repay' | 'payment';
+      type: 'advance' | 'advance_repay' | 'loan_issue' | 'loan_repay' | 'payment';
       title: string;
       staffName: string;
       staffId: string;
@@ -313,6 +313,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         title:
           item.type === 'advance'
             ? 'Salary Advance'
+            : item.type === 'advance_repay'
+            ? 'Advance Repaid'
             : item.type === 'loan_issue'
             ? 'Loan Issued'
             : 'Loan Repaid',
@@ -1182,6 +1184,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
                       act.type === 'advance'
                         ? 'bg-purple-100 text-purple-800'
+                        : act.type === 'advance_repay'
+                        ? 'bg-emerald-100 text-emerald-800'
                         : act.type === 'loan_issue'
                         ? 'bg-amber-100 text-amber-800'
                         : act.type === 'loan_repay'
@@ -1190,6 +1194,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                     }`}
                   >
                     {act.type === 'advance' && <Wallet className="w-4 h-4" />}
+                    {act.type === 'advance_repay' && <HandCoins className="w-4 h-4" />}
                     {act.type === 'loan_issue' && <TrendingUp className="w-4 h-4" />}
                     {act.type === 'loan_repay' && <CheckCircle2 className="w-4 h-4" />}
                     {act.type === 'payment' && <Receipt className="w-4 h-4" />}

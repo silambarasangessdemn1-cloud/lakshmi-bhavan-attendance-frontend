@@ -55,7 +55,7 @@ export interface PaymentRecord {
   timestamp: number;
 }
 
-export type LoanAdvanceType = 'advance' | 'loan_issue' | 'loan_repay';
+export type LoanAdvanceType = 'advance' | 'advance_repay' | 'loan_issue' | 'loan_repay';
 
 export interface LoanAdvanceEntry {
   id: string;

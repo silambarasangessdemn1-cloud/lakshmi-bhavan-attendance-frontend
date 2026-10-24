@@ -52,6 +52,26 @@ export const LoansView: React.FC<LoansViewProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [borrowerStatusFilter, setBorrowerStatusFilter] = useState<'all' | 'active' | 'cleared'>('all');
 
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      const q = searchQuery.trim().toLowerCase();
+      if (!q) return;
+      const cleanQ = q.replace(/[^a-z0-9]/g, '');
+      const matched =
+        staff.find((s) => s.id.trim().toLowerCase() === q) ||
+        (cleanQ ? staff.find((s) => s.id.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanQ) : undefined) ||
+        staff.find((s) => s.name.trim().toLowerCase() === q) ||
+        staff.find((s) => s.id.toLowerCase().includes(q)) ||
+        staff.find((s) => s.name.toLowerCase().includes(q));
+
+      if (matched) {
+        onViewStaffDetails(matched);
+      } else {
+        showToast(`No borrower found matching "${searchQuery.trim()}"`, 'error');
+      }
+    }
+  };
+
   // Compute full loan portfolio per staff member
   const borrowersData = useMemo(() => {
     let totalProvidedAll = 0;
@@ -433,7 +453,8 @@ export const LoansView: React.FC<LoansViewProps> = ({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search borrower..."
+                  onKeyDown={handleSearchKeyDown}
+                  placeholder="Search borrower... (Enter to open)"
                   className="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-hidden focus:bg-white focus:border-amber-600"
                 />
               </div>

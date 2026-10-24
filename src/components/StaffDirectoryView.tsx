@@ -22,6 +22,7 @@ import {
   Receipt,
   BadgeAlert,
   Trash2,
+  CornerDownLeft,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 import { StaffMember } from '../types';
@@ -123,6 +124,68 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
     setCopiedId(id);
     showToast(`Copied ${id} to clipboard`, 'info');
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const handleOpenStaffDetailsFromSearch = () => {
+    const rawQuery = searchTerm.trim();
+    if (!rawQuery) {
+      showToast('Please enter a staff ID or name to search', 'info');
+      return;
+    }
+
+    const query = rawQuery.toLowerCase();
+    const cleanQuery = query.replace(/[^a-z0-9]/g, '');
+
+    // 1. Priority: Exact ID match (case-insensitive)
+    let matched = staff.find((s) => s.id.trim().toLowerCase() === query);
+
+    // 2. Normalized ID match (e.g. STF01 vs STF-01)
+    if (!matched && cleanQuery) {
+      matched = staff.find(
+        (s) => s.id.toLowerCase().replace(/[^a-z0-9]/g, '') === cleanQuery
+      );
+    }
+
+    // 3. Exact Staff Name match
+    if (!matched) {
+      matched = staff.find((s) => s.name.trim().toLowerCase() === query);
+    }
+
+    // 4. Staff in current filteredStaff matching ID
+    if (!matched && filteredStaff.length > 0) {
+      matched = filteredStaff.find((s) => s.id.toLowerCase().includes(query));
+    }
+
+    // 5. Staff in current filteredStaff matching Name
+    if (!matched && filteredStaff.length > 0) {
+      matched = filteredStaff.find((s) => s.name.toLowerCase().includes(query));
+    }
+
+    // 6. First staff in filteredStaff
+    if (!matched && filteredStaff.length > 0) {
+      matched = filteredStaff[0];
+    }
+
+    // 7. Fallback across all staff (ID contains query, then Name contains query)
+    if (!matched) {
+      matched =
+        staff.find((s) => s.id.toLowerCase().includes(query)) ||
+        staff.find((s) => s.name.toLowerCase().includes(query));
+    }
+
+    if (matched) {
+      setSelectedStaffForDetails(matched);
+      showToast(`Opened profile for ${matched.name} (${matched.id})`, 'info');
+    } else {
+      showToast(`No staff member found matching ID or name "${rawQuery}"`, 'error');
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleOpenStaffDetailsFromSearch();
+    }
   };
 
   const renderStaffCard = (member: StaffMember) => {
@@ -284,25 +347,43 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
       {/* 2. Controls & Search Bar */}
       <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-3.5">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-          {/* Search Input with Clear Button */}
+          {/* Search Input with Clear & Enter Button */}
           <div className="relative flex-1 max-w-md">
             <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name, role, ID, or phone number..."
-              className="w-full pl-10 pr-9 py-2.5 text-xs sm:text-sm font-medium bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-500 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-2xs"
+              onKeyDown={handleSearchKeyDown}
+              placeholder="Search by staff ID, name, role... (Press Enter to open)"
+              className="w-full pl-10 pr-24 py-2.5 text-xs sm:text-sm font-medium bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-500 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 transition-all shadow-2xs"
             />
-            {searchTerm && (
-              <button
-                type="button"
-                onClick={() => setSearchTerm('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-slate-500 hover:text-slate-800 rounded-full cursor-pointer"
-                title="Clear search"
-              >
-                <X className="w-4 h-4" />
-              </button>
+            {searchTerm ? (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm('')}
+                  className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer transition-colors"
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleOpenStaffDetailsFromSearch}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white rounded-lg shadow-2xs cursor-pointer transition-all"
+                  title="Click or press Enter to open staff details"
+                >
+                  <span>Enter</span>
+                  <CornerDownLeft className="w-3 h-3" />
+                </button>
+              </div>
+            ) : (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden sm:flex items-center pointer-events-none">
+                <kbd className="px-1.5 py-0.5 text-[10px] font-semibold font-mono text-slate-400 bg-slate-100 border border-slate-200 rounded">
+                  ↵ Enter
+                </kbd>
+              </div>
             )}
           </div>
 
