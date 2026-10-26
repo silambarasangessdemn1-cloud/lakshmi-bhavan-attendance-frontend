@@ -9,8 +9,8 @@ import {
 } from '../types';
 
 // Common centralized API endpoint for Shree Lakshmi Bhavan Staff & Payroll Manager
-// Automatically connects to local backend or Render production backend
-const DEFAULT_API_BASE = 'http://localhost:5050/api';
+// Automatically connects to Render production backend (or VITE_API_URL override)
+const DEFAULT_API_BASE = 'https://lakshmi-bhavan-attendance-backend.onrender.com/api';
 const RAW_API_BASE = (import.meta.env.VITE_API_URL as string) || DEFAULT_API_BASE;
 
 export const API_BASE = RAW_API_BASE.replace(/\/+$/, '');
