@@ -2,16 +2,12 @@ import React from 'react';
 import {
   Users,
   CalendarCheck2,
-  Wallet,
-  CreditCard,
   Sliders,
   Plus,
-  RotateCcw,
   Calendar,
   Building2,
   ShieldCheck,
   LogOut,
-  ChevronDown,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 import { useAuth } from '../context/AuthContext';
@@ -36,10 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   const {
     staff,
     settings,
-    resetToShreeLakshmiBhavan,
     isBackendConnected,
-    loanAdvances,
-    selectedMonth,
   } = useStaff();
 
   const {
@@ -85,17 +78,17 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="no-print sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        {/* Top Tier: Brand, Branch Selector, User & Actions */}
-        <div className="flex items-center justify-between gap-2 sm:gap-3 h-14 sm:h-16">
+        {/* Top Tier: Brand, Desktop Branch Selector, and Action Tools */}
+        <div className="flex items-center justify-between gap-2 sm:gap-4 h-14 sm:h-16">
           {/* Brand & Identity */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-500/20 ring-2 ring-emerald-500/20 shrink-0">
               <span className="tracking-tight">SLB</span>
             </div>
 
-            <div className="min-w-0 flex-1 sm:flex-initial">
+            <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <h1 className="text-sm sm:text-base lg:text-lg font-black text-slate-900 tracking-tight truncate max-w-[130px] xs:max-w-[190px] sm:max-w-none">
+                <h1 className="text-sm sm:text-base lg:text-lg font-black text-slate-900 tracking-tight truncate max-w-[140px] xs:max-w-[200px] sm:max-w-[280px] md:max-w-none">
                   {settings.companyName || 'Shree Lakshmi Bhavan'}
                 </h1>
                 {/* Cloud Sync Status Indicator */}
@@ -126,16 +119,16 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Center/Right: Branch Selection & Management */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          {/* Desktop Branch Controls (hidden on mobile, cleanly visible md and up) */}
+          <div className="hidden md:flex items-center gap-2 lg:gap-2.5">
             {/* SUPER ADMIN: Branch Switcher */}
             {isSuperAdmin && branches.length > 0 && (
-              <div className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200/80 border border-slate-300 rounded-xl px-2 sm:px-2.5 py-1 text-xs transition-colors">
+              <div className="flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200/80 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs transition-colors">
                 <Building2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
                 <select
                   value={activeBranchId}
                   onChange={(e) => setActiveBranchId(e.target.value)}
-                  className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer max-w-[120px] xs:max-w-[160px] sm:max-w-none truncate"
+                  className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer max-w-[140px] lg:max-w-[180px] truncate"
                   title="Switch Active Branch Filter"
                 >
                   <option value="all">🌐 All Branches ({branches.length})</option>
@@ -153,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenBranchManagement}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 ${
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 ${
                   branches.length === 0
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
                     : 'text-slate-800 bg-white hover:bg-slate-100 border border-slate-300'
@@ -169,11 +162,14 @@ export const Header: React.FC<HeaderProps> = ({
             {isBranchAdmin && userBranch && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 shrink-0">
                 <Building2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                <span className="truncate max-w-[130px] sm:max-w-none">{userBranch.name}</span>
+                <span className="truncate max-w-[140px]">{userBranch.name}</span>
               </div>
             )}
+          </div>
 
-            {/* Live Today Badge */}
+          {/* Right Action Tools: Add Staff, Settings, Profile & Logout */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            {/* Live Today Badge (Desktop Only) */}
             <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-900 border border-slate-300 shadow-2xs">
               <Calendar className="w-3.5 h-3.5 text-slate-700" />
               <span>{todayFormatted}</span>
@@ -184,10 +180,11 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onOpenAddStaff}
               className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer shrink-0"
+              title="Add New Staff Member"
             >
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
-              <span className="hidden xs:inline">Add Staff</span>
-              <span className="xs:hidden">Staff</span>
+              <span className="hidden sm:inline">Add Staff</span>
+              <span className="sm:hidden">Staff</span>
             </button>
 
             {/* Settings */}
@@ -202,7 +199,7 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* User Profile & Sign Out */}
             {user && (
-              <div className="flex items-center gap-1.5 pl-1.5 border-l border-slate-200">
+              <div className="flex items-center gap-1 sm:gap-1.5 pl-1 sm:pl-1.5 border-l border-slate-200">
                 <div
                   className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-default"
                   title={`Logged in as ${user.name} (${user.role === 'superadmin' ? 'Super Admin' : 'Branch Admin'})`}
@@ -223,8 +220,63 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
+        {/* Mobile Dedicated Branch Bar (Shown only on screens < md) */}
+        {(isSuperAdmin || (isBranchAdmin && userBranch)) && (
+          <div className="md:hidden py-2 border-t border-slate-100 flex items-center gap-2">
+            {/* SUPER ADMIN: Mobile Branch Switcher */}
+            {isSuperAdmin && branches.length > 0 && (
+              <div className="flex-1 min-w-0 flex items-center gap-1.5 bg-slate-100 hover:bg-slate-200/80 border border-slate-300 rounded-xl px-2.5 py-1.5 text-xs transition-colors">
+                <Building2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                <select
+                  value={activeBranchId}
+                  onChange={(e) => setActiveBranchId(e.target.value)}
+                  className="w-full bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer text-xs truncate"
+                  title="Switch Active Branch Filter"
+                >
+                  <option value="all">🌐 All Branches ({branches.length})</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      🏢 {b.name} ({b.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* SUPER ADMIN: Mobile Manage Branches & Admins Button */}
+            {isSuperAdmin && onOpenBranchManagement && (
+              <button
+                type="button"
+                onClick={onOpenBranchManagement}
+                className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer ${
+                  branches.length === 0
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                    : 'text-slate-800 bg-white hover:bg-slate-100 border border-slate-300'
+                }`}
+                title="Manage Branches & Branch Admins"
+              >
+                <ShieldCheck className={`w-3.5 h-3.5 ${branches.length === 0 ? 'text-white' : 'text-emerald-600'}`} />
+                <span>{branches.length === 0 ? '+ Add Branch' : 'Branches'}</span>
+              </button>
+            )}
+
+            {/* BRANCH ADMIN: Mobile Dedicated Branch Badge */}
+            {isBranchAdmin && userBranch && (
+              <div className="flex-1 flex items-center justify-between px-2.5 py-1.5 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Building2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span className="truncate">{userBranch.name}</span>
+                </div>
+                <span className="text-[10px] uppercase tracking-wider text-emerald-700 font-bold bg-emerald-100 px-1.5 py-0.5 rounded shrink-0">
+                  {userBranch.code}
+                </span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Bottom Tier: Top-Level Single-Page Navigation Tabs with edge-to-edge mobile scrolling */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-2 sm:py-2.5 border-t border-slate-100 no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0 touch-pan-x scroll-smooth">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto py-2 sm:py-2.5 border-t border-slate-100 no-scrollbar -mx-3 px-3 sm:mx-0 sm:px-0 touch-pan-x scroll-smooth">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             const Icon = item.icon;
@@ -234,7 +286,7 @@ export const Header: React.FC<HeaderProps> = ({
                 key={item.id}
                 type="button"
                 onClick={() => onTabChange(item.id)}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer relative ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold rounded-xl whitespace-nowrap shrink-0 transition-all cursor-pointer relative min-h-[36px] ${
                   isActive
                     ? 'bg-slate-900 text-white shadow-xs'
                     : 'text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 hover:text-slate-950 border border-slate-200'
@@ -246,7 +298,7 @@ export const Header: React.FC<HeaderProps> = ({
 
                 {item.badge && (
                   <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold font-mono tracking-tight shrink-0 ${
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold font-mono tracking-tight shrink-0 ${
                       isActive ? 'bg-white/20 text-white' : item.badgeColor || 'bg-slate-200 text-slate-800'
                     }`}
                   >
