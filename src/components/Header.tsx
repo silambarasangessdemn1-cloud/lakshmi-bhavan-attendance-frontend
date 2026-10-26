@@ -8,8 +8,13 @@ import {
   Plus,
   RotateCcw,
   Calendar,
+  Building2,
+  ShieldCheck,
+  LogOut,
+  ChevronDown,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
+import { useAuth } from '../context/AuthContext';
 
 export type ActiveTab = 'staff' | 'attendance' | 'advances' | 'loans';
 
@@ -18,6 +23,7 @@ interface HeaderProps {
   onTabChange: (tab: ActiveTab) => void;
   onOpenAddStaff: () => void;
   onOpenSettings: () => void;
+  onOpenBranchManagement?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -25,6 +31,7 @@ export const Header: React.FC<HeaderProps> = ({
   onTabChange,
   onOpenAddStaff,
   onOpenSettings,
+  onOpenBranchManagement,
 }) => {
   const {
     staff,
@@ -35,16 +42,18 @@ export const Header: React.FC<HeaderProps> = ({
     selectedMonth,
   } = useStaff();
 
+  const {
+    user,
+    logout,
+    branches,
+    activeBranchId,
+    setActiveBranchId,
+    isSuperAdmin,
+    isBranchAdmin,
+  } = useAuth();
+
   // Dynamic counts for tab badges
   const activeStaffCount = staff.filter((s) => s.status !== 'inactive').length;
-  const monthAdvancesCount = loanAdvances.filter(
-    (l) => l.type === 'advance' && l.month === selectedMonth
-  ).length;
-  const activeLoansCount = staff.filter(
-    (s) =>
-      Number(s.loanStart) > 0 ||
-      loanAdvances.some((l) => l.staffId === s.id && l.type === 'loan_issue')
-  ).length;
 
   const navItems = [
     {
@@ -63,7 +72,6 @@ export const Header: React.FC<HeaderProps> = ({
       badge: activeStaffCount > 0 ? `${activeStaffCount} active` : undefined,
       badgeColor: 'bg-blue-100 text-blue-800',
     },
-   
   ];
 
   const todayFormatted = new Intl.DateTimeFormat('en-US', {
@@ -72,10 +80,12 @@ export const Header: React.FC<HeaderProps> = ({
     day: 'numeric',
   }).format(new Date());
 
+  const userBranch = branches.find((b) => b.id === user?.branchId);
+
   return (
     <header className="no-print sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-        {/* Top Tier: Brand, Live Sync, Global Actions */}
+        {/* Top Tier: Brand, Branch Selector, User & Actions */}
         <div className="flex items-center justify-between gap-2 sm:gap-3 h-14 sm:h-16">
           {/* Brand & Identity */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 sm:flex-initial">
@@ -95,11 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
                       ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                       : 'bg-amber-50 text-amber-800 border-amber-200'
                   }`}
-                  title={
-                    isBackendConnected
-                      ? 'Real-time Cloud Sync active'
-                      : 'Operating in Offline Mode'
-                  }
+                  title={isBackendConnected ? 'Real-time Cloud Sync active' : 'Operating in Offline Mode'}
                 >
                   <span className="relative flex h-1.5 w-1.5">
                     {isBackendConnected && (
@@ -114,16 +120,61 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="hidden xs:inline">{isBackendConnected ? 'Online' : 'Offline'}</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-700 font-medium truncate hidden sm:block">
-                Staff Attendance, Advances &amp; Salary Ledger
+              <p className="text-xs text-slate-500 font-medium truncate hidden sm:block">
+                Staff Attendance, Advances &amp; Multi-Branch Payroll
               </p>
             </div>
           </div>
 
-          {/* Right Action Tools */}
+          {/* Center/Right: Branch Selection & Management */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* SUPER ADMIN: Branch Switcher */}
+            {isSuperAdmin && branches.length > 0 && (
+              <div className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200/80 border border-slate-300 rounded-xl px-2 sm:px-2.5 py-1 text-xs transition-colors">
+                <Building2 className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                <select
+                  value={activeBranchId}
+                  onChange={(e) => setActiveBranchId(e.target.value)}
+                  className="bg-transparent font-bold text-slate-800 focus:outline-none cursor-pointer max-w-[120px] xs:max-w-[160px] sm:max-w-none truncate"
+                  title="Switch Active Branch Filter"
+                >
+                  <option value="all">🌐 All Branches ({branches.length})</option>
+                  {branches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      🏢 {b.name} ({b.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* SUPER ADMIN: Manage Branches & Admins Button */}
+            {isSuperAdmin && onOpenBranchManagement && (
+              <button
+                type="button"
+                onClick={onOpenBranchManagement}
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 ${
+                  branches.length === 0
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20'
+                    : 'text-slate-800 bg-white hover:bg-slate-100 border border-slate-300'
+                }`}
+                title="Manage Branches & Branch Admins"
+              >
+                <ShieldCheck className={`w-3.5 h-3.5 ${branches.length === 0 ? 'text-white' : 'text-emerald-600'}`} />
+                <span>{branches.length === 0 ? '+ Add Branch' : 'Branches & Admins'}</span>
+              </button>
+            )}
+
+            {/* BRANCH ADMIN: Dedicated Branch Tag */}
+            {isBranchAdmin && userBranch && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-bold text-emerald-800 shrink-0">
+                <Building2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="truncate max-w-[130px] sm:max-w-none">{userBranch.name}</span>
+              </div>
+            )}
+
             {/* Live Today Badge */}
-            <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-900 border border-slate-300 shadow-2xs">
+            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-900 border border-slate-300 shadow-2xs">
               <Calendar className="w-3.5 h-3.5 text-slate-700" />
               <span>{todayFormatted}</span>
             </div>
@@ -132,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onOpenAddStaff}
-              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer shrink-0"
+              className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 rounded-xl shadow-xs transition-all whitespace-nowrap cursor-pointer shrink-0"
             >
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
               <span className="hidden xs:inline">Add Staff</span>
@@ -149,23 +200,26 @@ export const Header: React.FC<HeaderProps> = ({
               <Sliders className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            {/* Reset / Fresh Start button */}
-            <button
-              type="button"
-              onClick={() => {
-                if (
-                  confirm(
-                    'Clear all staff, attendance, payment, and loan records and reset company details for Shree Lakshmi Bhavan? This cannot be undone.'
-                  )
-                ) {
-                  resetToShreeLakshmiBhavan();
-                }
-              }}
-              title="Reset fresh start (Shree Lakshmi Bhavan defaults)"
-              className="p-1.5 sm:p-2 text-slate-700 hover:text-slate-950 bg-white hover:bg-slate-100 border border-slate-300 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
-            >
-              <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            </button>
+            {/* User Profile & Sign Out */}
+            {user && (
+              <div className="flex items-center gap-1.5 pl-1.5 border-l border-slate-200">
+                <div
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 cursor-default"
+                  title={`Logged in as ${user.name} (${user.role === 'superadmin' ? 'Super Admin' : 'Branch Admin'})`}
+                >
+                  {user.name.charAt(0).toUpperCase()}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={logout}
+                  title="Sign Out"
+                  className="p-1.5 sm:p-2 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-xl transition-all shadow-2xs cursor-pointer shrink-0"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -207,4 +261,3 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
-

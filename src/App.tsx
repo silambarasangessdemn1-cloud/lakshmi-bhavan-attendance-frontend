@@ -4,7 +4,9 @@
  */
 
 import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { StaffProvider, useStaff } from './context/StaffContext';
+import { LoginView } from './components/LoginView';
 import { Header, ActiveTab } from './components/Header';
 import { AttendanceView } from './components/AttendanceView';
 import { StaffDirectoryView } from './components/StaffDirectoryView';
@@ -15,15 +17,19 @@ import { AdvanceLoanModal } from './components/AdvanceLoanModal';
 import { StaffFullDetailsModal } from './components/StaffFullDetailsModal';
 import { SalaryStudioModal } from './components/SalaryStudioModal';
 import { SettingsModal, FONT_OPTIONS } from './components/SettingsModal';
+import { BranchAdminManagementModal } from './components/BranchAdminManagementModal';
 import { ToastContainer } from './components/ToastNotification';
 import { StaffMember, LoanAdvanceType } from './types';
 
 const MainLayout: React.FC = () => {
   const { staff, toasts, dismissToast, settings } = useStaff();
+  const { isSuperAdmin } = useAuth();
+
   const [activeTab, setActiveTab] = useState<ActiveTab>('staff');
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
   const [staffToEdit, setStaffToEdit] = useState<StaffMember | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [isBranchManagementOpen, setIsBranchManagementOpen] = useState(false);
 
   // Modal configuration for Advances & Loans
   const [advanceLoanModalConfig, setAdvanceLoanModalConfig] = useState<{
@@ -91,6 +97,7 @@ const MainLayout: React.FC = () => {
         }}
         onOpenAddStaff={handleOpenAddStaff}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
+        onOpenBranchManagement={() => setIsBranchManagementOpen(true)}
       />
 
       {/* Main Workspace (Initial Home View is Staff List) */}
@@ -142,6 +149,14 @@ const MainLayout: React.FC = () => {
         onClose={() => setIsSettingsModalOpen(false)}
       />
 
+      {/* Super Admin: Branch & Admin Management Modal */}
+      {isSuperAdmin && (
+        <BranchAdminManagementModal
+          isOpen={isBranchManagementOpen}
+          onClose={() => setIsBranchManagementOpen(false)}
+        />
+      )}
+
       {/* Dedicated Advance / Loan Modal */}
       {advanceLoanModalConfig.isOpen && (
         <AdvanceLoanModal
@@ -188,11 +203,33 @@ const MainLayout: React.FC = () => {
   );
 };
 
-export default function App() {
+const AppContent: React.FC = () => {
+  const { user, isAuthLoading } = useAuth();
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white">
+        <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4" />
+        <p className="text-sm font-semibold text-emerald-300">Loading Shree Lakshmi Bhavan Workspace...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <LoginView />;
+  }
+
   return (
     <StaffProvider>
       <MainLayout />
     </StaffProvider>
   );
-}
+};
 
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}

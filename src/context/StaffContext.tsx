@@ -93,6 +93,8 @@ function getInitialLocalStorageData() {
   return { staff: [], attendance: [], payments: [], loanAdvances: [] };
 }
 
+import { useAuth } from './AuthContext';
+
 function getInitialSettings(): CompanySettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY) || localStorage.getItem('staffpay_pro_slb_v6_settings');
@@ -106,6 +108,7 @@ function getInitialSettings(): CompanySettings {
 }
 
 export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { activeBranchId, user } = useAuth();
   const [selectedMonth, setSelectedMonth] = useState<string>(() => getCurrentMonth());
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [isBackendConnected, setIsBackendConnected] = useState<boolean>(false);
@@ -154,8 +157,10 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const health = await api.checkHealth();
       setIsBackendConnected(true);
 
+      const branchFilter = activeBranchId && activeBranchId !== 'all' ? activeBranchId : undefined;
+
       const [staffData, attData, loansData, paysData, settingsData] = await Promise.all([
-        api.getStaff(),
+        api.getStaff(branchFilter ? { branchId: branchFilter } : undefined),
         api.getAttendance(),
         api.getLoanAdvances(),
         api.getPayments(),
@@ -164,7 +169,10 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (Array.isArray(staffData)) {
         // Exclude any legacy demo IDs
-        const dynamicOnly = staffData.filter((s) => !LEGACY_DEMO_IDS.has(s.id));
+        let dynamicOnly = staffData.filter((s) => !LEGACY_DEMO_IDS.has(s.id));
+        if (branchFilter) {
+          dynamicOnly = dynamicOnly.filter((s) => !s.branchId || s.branchId === branchFilter);
+        }
         setStaff(dynamicOnly);
       }
       if (Array.isArray(attData)) {
@@ -185,12 +193,12 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [activeBranchId]);
 
-  // Initial load on mount
+  // Reload data when active branch changes
   useEffect(() => {
     refreshData();
-  }, [refreshData]);
+  }, [refreshData, activeBranchId]);
 
   // Staff helpers
   const getStaff = (id: string) => staff.find((s) => s.id === id);

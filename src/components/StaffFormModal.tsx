@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Upload, Camera, Trash2, Calculator, Check, AlertCircle } from 'lucide-react';
+import { X, Upload, Camera, Trash2, Calculator, Check, AlertCircle, Building2 } from 'lucide-react';
 import { StaffMember } from '../types';
 import { useStaff } from '../context/StaffContext';
+import { useAuth } from '../context/AuthContext';
 import { StaffAvatar } from './StaffAvatar';
 import { getTodayDateString, compressImageFile } from '../utils/formatters';
 
@@ -17,11 +18,16 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   staffToEdit,
 }) => {
   const { addStaff, updateStaff, deleteStaff, staff, showToast } = useStaff();
+  const { branches, activeBranchId, isSuperAdmin, isBranchAdmin, user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const defaultBranchId =
+    (isBranchAdmin ? user?.branchId : activeBranchId !== 'all' ? activeBranchId : branches[0]?.id) || '';
 
   const [formData, setFormData] = useState<Partial<StaffMember>>({
     id: '',
     name: '',
+    branchId: defaultBranchId,
     designation: '',
     phone: '',
     wage: 800,
@@ -43,6 +49,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     if (staffToEdit) {
       setFormData({
         ...staffToEdit,
+        branchId: staffToEdit.branchId || defaultBranchId,
         monthlyLoanDeduction: staffToEdit.monthlyLoanDeduction || 0,
         autoLoanDeduct: staffToEdit.autoLoanDeduct !== false,
       });
@@ -50,6 +57,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
       setFormData({
         id: '',
         name: '',
+        branchId: defaultBranchId,
         designation: '',
         phone: '',
         wage: 800,
@@ -68,7 +76,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
       });
     }
     setError(null);
-  }, [staffToEdit, isOpen]);
+  }, [staffToEdit, isOpen, defaultBranchId]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -131,6 +139,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     const payload: StaffMember = {
       id: trimmedId,
       name: trimmedName,
+      branchId: formData.branchId || defaultBranchId,
       designation: (formData.designation || 'Staff').trim(),
       phone: (formData.phone || '').trim(),
       wage: Number(formData.wage) || 0,
@@ -264,6 +273,35 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
 
           {/* Core Info Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Branch Assignment */}
+            {branches.length > 0 && (
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Branch Assignment <span className="text-rose-500">*</span>
+                </label>
+                {isSuperAdmin ? (
+                  <select
+                    value={formData.branchId || defaultBranchId}
+                    onChange={(e) => setFormData({ ...formData, branchId: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
+                  >
+                    {branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.code})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="w-full px-3 py-2 text-sm bg-slate-100 border border-slate-200 rounded-lg text-slate-700 flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-medium">
+                      {branches.find((b) => b.id === user?.branchId)?.name || 'Assigned Branch'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-semibold text-slate-700">

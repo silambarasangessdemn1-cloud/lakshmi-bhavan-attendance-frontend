@@ -1,8 +1,36 @@
 export type AttendanceStatus = 'present' | 'half' | 'absent' | 'leave';
 
+export interface Branch {
+  id: string;
+  name: string;
+  code: string;
+  location?: string;
+  phone?: string;
+  address?: string;
+  status?: 'active' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type UserRole = 'superadmin' | 'admin';
+
+export interface User {
+  id: string;
+  username: string;
+  name: string;
+  role: UserRole;
+  branchId?: string | null;
+  branchName?: string | null;
+  phone?: string;
+  status?: 'active' | 'inactive';
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface StaffMember {
   id: string; // e.g. "EMP-001" or "ST001"
   name: string;
+  branchId?: string; // Associated branch ID
   designation: string; // e.g. "Production Supervisor", "Senior Welder", "Machine Operator"
   phone: string;
   wage: number; // Daily Wage in currency
@@ -23,6 +51,7 @@ export interface StaffMember {
 export interface AttendanceRecord {
   id: string;
   staffId: string;
+  branchId?: string;
   date: string; // YYYY-MM-DD
   status: AttendanceStatus;
   inTime?: string; // e.g. "09:00"
@@ -39,6 +68,7 @@ export interface PaymentRecord {
   month: string; // YYYY-MM
   staffId: string;
   staffName: string;
+  branchId?: string;
   dailyWage: number;
   daysPresent: number; // Unit count: full = 1, half = 0.5
   otHours: number;
@@ -60,6 +90,7 @@ export type LoanAdvanceType = 'advance' | 'advance_repay' | 'loan_issue' | 'loan
 export interface LoanAdvanceEntry {
   id: string;
   staffId: string;
+  branchId?: string;
   type: LoanAdvanceType;
   amount: number;
   date: string; // YYYY-MM-DD
