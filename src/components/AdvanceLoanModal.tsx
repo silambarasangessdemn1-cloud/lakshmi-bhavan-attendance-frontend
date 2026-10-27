@@ -4,6 +4,7 @@ import {
   HandCoins,
   CreditCard,
   Check,
+  CheckCircle2,
   AlertCircle,
   Wallet,
   Minus,
@@ -539,6 +540,15 @@ export const AdvanceLoanModal: React.FC<AdvanceLoanModalProps> = ({
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {type === 'loan_repay' && (
+            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200/80 text-xs text-emerald-900 flex items-center gap-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                This loan repayment of <strong>{amount > 0 ? formatCurrency(amount) : 'amount'}</strong> will reduce <strong>{currentStaff?.name || 'staff'}’s</strong> monthly net salary for <strong>{date.slice(0, 7) || 'this cycle'}</strong>.
+              </span>
             </div>
           )}
 

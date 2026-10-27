@@ -34,9 +34,14 @@ import {
 interface StaffLedgerSheetProps {
   staff: StaffMember;
   month: string; // YYYY-MM
+  loanAdvanceCard?: React.ReactNode;
 }
 
-export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month }) => {
+export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
+  staff,
+  month,
+  loanAdvanceCard,
+}) => {
   const {
     getAttendanceForStaffAndMonth,
     getStaffLoanAdvanceEntries,
@@ -67,16 +72,22 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
     advanceEntries.reduce((sum, e) => sum + (e.amount || 0), 0) -
     advanceRepayEntries.reduce((sum, e) => sum + (e.amount || 0), 0)
   );
+
+  const loanRepayEntries = loanAdvanceEntries.filter((e) => e.type === 'loan_repay');
+  const directLoanRepayMonth = loanRepayEntries.reduce((sum, e) => sum + (e.amount || 0), 0);
+
   const activeLoanBal = getStaffLoanBalance(staff.id);
+
+  // Settlement Form State
+  const existingPayment = payments.find((p) => p.staffId === staff.id && p.month === month);
 
   const payroll = calculateStaffPayroll(staff.id, month);
   const grossSalary = payroll ? payroll.gross : 0;
   const currentLoanDeduction = payroll ? payroll.currentLoanDeduction : 0;
   const netTotal = payroll ? payroll.netPayable : Math.max(0, grossSalary - totalAdvances - currentLoanDeduction);
-  const remainingLoanAfterDeduct = Math.max(0, activeLoanBal - currentLoanDeduction);
 
-  // Settlement Form State
-  const existingPayment = payments.find((p) => p.staffId === staff.id && p.month === month);
+  const priorLoanBal = existingPayment ? activeLoanBal : activeLoanBal + directLoanRepayMonth;
+  const remainingLoanAfterDeduct = Math.max(0, priorLoanBal - currentLoanDeduction);
   const [isEditing, setIsEditing] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(
     existingPayment?.paymentMethod || 'Cash'
@@ -121,34 +132,35 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
   const effectiveWorkDays = presentDays + halfDays * 0.5;
 
   return (
-    <div className="bg-white text-slate-800 rounded-2xl border border-slate-200/90 shadow-sm p-5 sm:p-7 space-y-6 max-w-5xl mx-auto font-sans">
+    <div className="bg-white text-slate-800 rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-7 space-y-6 max-w-5xl mx-auto font-sans">
       {/* ─────────────────────────────────────────────────────────────
           1. EXECUTIVE DOCUMENT HEADER
       ───────────────────────────────────────────────────────────── */}
      
 
       {/* ─────────────────────────────────────────────────────────────
-          2. STAFF IDENTITY STRIP
+          2. STAFF IDENTITY STRIP (EXECUTIVE PASSPORT BADGE)
       ───────────────────────────────────────────────────────────── */}
-      <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white border border-slate-800 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <StaffAvatar name={staff.name} photo={staff.photo} size="lg" className="border-2 border-white shadow-xs" />
+          <StaffAvatar name={staff.name} photo={staff.photo} size="lg" className="border-2 border-emerald-400/30 shadow-md" />
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-base text-slate-900">{staff.name}</span>
-              <span className="text-xs font-mono font-bold bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-extrabold text-base text-white tracking-tight">{staff.name}</span>
+              <span className="text-xs font-mono font-bold bg-white/10 text-emerald-300 px-2.5 py-0.5 rounded-md border border-emerald-500/20 shadow-2xs">
                 {staff.id}
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-wide bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                {staff.status === 'inactive' ? 'Inactive' : 'Active Staff'}
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-400/30 inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>{staff.status === 'inactive' ? 'Inactive' : 'Active Staff'}</span>
               </span>
             </div>
-            <div className="text-xs text-slate-600 flex items-center gap-2 mt-1">
+            <div className="text-xs text-slate-300 flex items-center gap-2 mt-1">
               <span className="font-medium">{staff.designation || 'Staff Member'}</span>
               {staff.phone && (
                 <>
-                  <span className="text-slate-300">·</span>
-                  <span className="font-mono text-slate-500">{staff.phone}</span>
+                  <span className="text-slate-500">·</span>
+                  <span className="font-mono text-slate-400">{staff.phone}</span>
                 </>
               )}
             </div>
@@ -157,30 +169,30 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
 
         {/* Wage Structure Badges */}
         <div className="flex flex-wrap items-center gap-2.5 text-xs">
-          <div className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+          <div className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10 shadow-2xs">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
               Daily Wage
             </span>
-            <span className="font-mono font-bold text-slate-900">
-              {formatCurrency(staff.wage)} <span className="text-slate-400 font-normal text-[11px]">/ day</span>
+            <span className="font-mono font-bold text-white text-xs">
+              {formatCurrency(staff.wage)} <span className="text-slate-400 font-normal text-[10px]">/ day</span>
             </span>
           </div>
 
-          <div className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+          <div className="px-3.5 py-1.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10 shadow-2xs">
             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
               Overtime Rate
             </span>
-            <span className="font-mono font-bold text-purple-900">
-              {formatCurrency(staff.otRate || 0)} <span className="text-slate-400 font-normal text-[11px]">/ hr</span>
+            <span className="font-mono font-bold text-violet-300 text-xs">
+              {formatCurrency(staff.otRate || 0)} <span className="text-slate-400 font-normal text-[10px]">/ hr</span>
             </span>
           </div>
 
           {activeLoanBal > 0 && (
-            <div className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200/80 shadow-2xs">
-              <span className="text-[10px] text-amber-700 font-bold uppercase tracking-wider block">
+            <div className="px-3.5 py-1.5 rounded-xl bg-amber-500/20 backdrop-blur-xs border border-amber-500/30 shadow-2xs">
+              <span className="text-[10px] text-amber-300 font-bold uppercase tracking-wider block">
                 Outstanding Loan
               </span>
-              <span className="font-mono font-bold text-amber-900">
+              <span className="font-mono font-bold text-amber-200 text-xs">
                 {formatCurrency(activeLoanBal)}
               </span>
             </div>
@@ -193,77 +205,84 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
       ───────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         {/* Card 1: Gross Salary Earned */}
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/80 to-teal-50/40 border border-emerald-200/80 shadow-2xs flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-50/90 via-teal-50/30 to-white border border-emerald-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
               Gross Wages Earned
             </span>
-            <TrendingUp className="w-4 h-4 text-emerald-600" />
+            <div className="p-1.5 rounded-lg bg-emerald-100/80 text-emerald-700">
+              <TrendingUp className="w-4 h-4" />
+            </div>
           </div>
-          <div className="mt-2.5">
-            <span className="text-2xl font-black font-mono text-emerald-950">
+          <div className="mt-3">
+            <span className="text-2xl font-black font-mono text-emerald-950 tracking-tight">
               {formatCurrency(grossSalary)}
             </span>
-            <p className="text-[11px] text-emerald-700 font-medium mt-0.5">
+            <p className="text-[11px] text-emerald-700 font-medium mt-1">
               {effectiveWorkDays} days worked + {totalOtHours}h OT
             </p>
           </div>
         </div>
 
-        {/* Card 2: Mid-Month Advances */}
-        <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-50/80 to-indigo-50/40 border border-purple-200/80 shadow-2xs flex flex-col justify-between">
+        {/* Card 2: Mid-Month Advances (Debit) */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-rose-50/90 via-red-50/30 to-white border border-rose-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-purple-800">
-              Salary Advances
+            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
+              <span>Salary Advances</span>
+              <span className="text-[9px] px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 font-extrabold uppercase">Debit</span>
             </span>
-            <Wallet className="w-4 h-4 text-purple-600" />
+            <div className="p-1.5 rounded-lg bg-rose-100/80 text-rose-700">
+              <Wallet className="w-4 h-4" />
+            </div>
           </div>
-          <div className="mt-2.5">
-            <span className="text-2xl font-black font-mono text-purple-950">
-              {formatCurrency(totalAdvances)}
+          <div className="mt-3">
+            <span className="text-2xl font-black font-mono text-rose-950 tracking-tight">
+              -{formatCurrency(totalAdvances)}
             </span>
-            <p className="text-[11px] text-purple-700 font-medium mt-0.5">
-              {advanceEntries.length} cash payouts deducted
+            <p className="text-[11px] text-rose-700 font-medium mt-1">
+              {advanceEntries.length} cash debits deducted
             </p>
           </div>
         </div>
 
         {/* Card 3: Days Breakdown */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-50/90 via-sky-50/20 to-white border border-slate-200/80 shadow-2xs flex flex-col justify-between hover:shadow-xs transition-shadow">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               Attendance Breakdown
             </span>
-            <Clock className="w-4 h-4 text-slate-400" />
+            <div className="p-1.5 rounded-lg bg-slate-100 text-slate-600">
+              <Clock className="w-4 h-4" />
+            </div>
           </div>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
-            <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs font-semibold">
+            <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px]">
               {presentDays} Present
             </span>
             {halfDays > 0 && (
-              <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+              <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px]">
                 {halfDays} Half
               </span>
             )}
-            <span className="px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200">
+            <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200 text-[11px]">
               {absentDays} Absent
             </span>
           </div>
         </div>
 
         {/* Card 4: Net Payable */}
-        <div className="p-4 rounded-2xl bg-slate-900 text-white shadow-md shadow-slate-950/10 border border-slate-800 flex flex-col justify-between">
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white shadow-md shadow-slate-950/20 border border-slate-800 flex flex-col justify-between hover:border-slate-700 transition-colors">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-              Net Payable Salary
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-400 bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+              Net Payable
             </span>
             <Receipt className="w-4 h-4 text-emerald-400" />
           </div>
-          <div className="mt-2.5">
-            <span className="text-2xl font-black font-mono text-white">
+          <div className="mt-3">
+            <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight">
               {formatCurrency(netTotal)}
             </span>
-            <p className="text-[11px] text-slate-400 mt-0.5">
+            <p className="text-[11px] text-slate-400 mt-1">
               {currentLoanDeduction > 0
                 ? 'Gross − Advances − Loan = Net'
                 : 'Gross − Advances = Net'}
@@ -298,11 +317,11 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
                 <th className="py-3 px-3 text-center w-20 border-r border-slate-200/80">
                   OT (Hrs)
                 </th>
-                <th className="py-3 px-4 text-right min-w-[130px] border-r border-slate-200/80">
-                  Day Wage
+                <th className="py-3 px-4 text-right min-w-[130px] border-r border-slate-200/80 text-emerald-800">
+                  Day Wage (Earned)
                 </th>
-                <th className="py-3 px-4 text-right min-w-[120px]">
-                  Advance Paid
+                <th className="py-3 px-4 text-right min-w-[130px] text-rose-800">
+                  Advance (Debit)
                 </th>
               </tr>
             </thead>
@@ -425,21 +444,21 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
                       )}
                     </td>
 
-                    {/* Daily Wage Earned */}
+                    {/* Daily Wage Earned (Credit) */}
                     <td className="py-2.5 px-4 text-right font-mono font-bold text-slate-900 border-r border-slate-100">
                       {dailyEarn > 0 ? (
-                        <span className="text-emerald-900">{formatCurrency(dailyEarn)}</span>
+                        <span className="text-emerald-700 font-bold">+{formatCurrency(dailyEarn)}</span>
                       ) : (
                         <span className="text-slate-300 font-normal">₹0</span>
                       )}
                     </td>
 
-                    {/* Advance Deducted */}
+                    {/* Advance Deducted (Debit) */}
                     <td className="py-2.5 px-4 text-right font-mono font-bold">
                       {dayAdvanceTotal > 0 ? (
-                        <span className="text-purple-800 bg-purple-50 px-2 py-0.5 rounded text-[11px] border border-purple-200/60 inline-flex items-center gap-1">
-                          <ArrowDownRight className="w-3 h-3 text-purple-600" />
-                          <span>{formatCurrency(dayAdvanceTotal)}</span>
+                        <span className="text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded text-[11px] border border-rose-200/80 inline-flex items-center gap-1 font-bold shadow-2xs">
+                          <ArrowDownRight className="w-3 h-3 text-rose-500" />
+                          <span>-{formatCurrency(dayAdvanceTotal)}</span>
                         </span>
                       ) : (
                         <span className="text-slate-300 font-normal">—</span>
@@ -450,28 +469,28 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
               })}
 
               {/* Subtotal & Summary Footer Row */}
-              <tr className="bg-slate-100/90 font-extrabold text-xs text-slate-900 border-t-2 border-slate-300 sticky bottom-0">
-                <td colSpan={4} className="py-3 px-4 uppercase tracking-wider text-slate-700 border-r border-slate-200">
+              <tr className="bg-slate-900 text-white font-extrabold text-xs border-t-2 border-emerald-500/40 sticky bottom-0 shadow-inner">
+                <td colSpan={4} className="py-3 px-4 uppercase tracking-wider text-slate-300 border-r border-slate-800">
                   <div className="flex items-center justify-between">
                     <span>Monthly Totals:</span>
-                    <span className="font-mono text-[11px] font-semibold text-slate-600">
+                    <span className="font-mono text-[11px] font-semibold text-slate-400">
                       {effectiveWorkDays} Net Days
                     </span>
                   </div>
                 </td>
-                <td className="py-3 px-3.5 text-center border-r border-slate-200">
-                  <span className="text-emerald-800 font-mono text-[11px]">
+                <td className="py-3 px-3.5 text-center border-r border-slate-800">
+                  <span className="text-emerald-300 font-mono text-[11px]">
                     {presentDays}P · {halfDays}H · {absentDays}A
                   </span>
                 </td>
-                <td className="py-3 px-3 text-center border-r border-slate-200 font-mono text-purple-900">
+                <td className="py-3 px-3 text-center border-r border-slate-800 font-mono text-violet-300">
                   {totalOtHours > 0 ? `+${totalOtHours}h` : '0h'}
                 </td>
-                <td className="py-3 px-4 text-right border-r border-slate-200 font-mono text-emerald-950 text-sm">
-                  {formatCurrency(grossSalary)}
+                <td className="py-3 px-4 text-right border-r border-slate-800 font-mono text-emerald-400 text-sm">
+                  +{formatCurrency(grossSalary)}
                 </td>
-                <td className="py-3 px-4 text-right font-mono text-purple-950 text-sm">
-                  {formatCurrency(totalAdvances)}
+                <td className="py-3 px-4 text-right font-mono text-rose-300 text-sm font-bold">
+                  -{formatCurrency(totalAdvances)}
                 </td>
               </tr>
             </tbody>
@@ -480,44 +499,46 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
-          5. SETTLEMENT COMPUTATION CARD
+          5. SETTLEMENT COMPUTATION CARD (OVERALL PAYMENT CARD)
       ───────────────────────────────────────────────────────────── */}
-      <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-850 text-white shadow-md border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5">
-        <div className="space-y-1 text-center md:text-left">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block">
+      <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white shadow-lg border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
+        <div className="absolute -right-8 -top-8 w-48 h-48 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+        
+        <div className="space-y-1.5 text-center md:text-left z-1">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full inline-block">
             Final Salary Settlement
           </span>
-          <div className="text-xs text-slate-300 flex items-center gap-2 flex-wrap">
-            <span>Gross: <strong>{formatCurrency(grossSalary)}</strong></span>
+          <div className="text-xs text-slate-300 flex items-center gap-2 flex-wrap font-medium pt-1">
+            <span>Gross: <strong className="text-emerald-300 font-mono">+{formatCurrency(grossSalary)}</strong></span>
             {totalAdvances > 0 && (
               <>
-                <span>−</span>
-                <span>Advances: <strong>{formatCurrency(totalAdvances)}</strong></span>
+                <span className="text-slate-500">−</span>
+                <span>Advances (Debit): <strong className="text-rose-400 font-mono">-{formatCurrency(totalAdvances)}</strong></span>
               </>
             )}
             {currentLoanDeduction > 0 && (
               <>
-                <span>−</span>
+                <span className="text-slate-500">−</span>
                 <span className="text-amber-300">
-                  Loan Repayment: <strong>{formatCurrency(currentLoanDeduction)}</strong>
+                  Loan Repayment (Debit): <strong className="text-amber-300 font-mono">-{formatCurrency(currentLoanDeduction)}</strong>
                 </span>
               </>
             )}
           </div>
-          {activeLoanBal > 0 && (
-            <p className="text-[10px] text-slate-400 mt-1">
-              Active loan balance: {formatCurrency(activeLoanBal)}
+          {(priorLoanBal > 0 || currentLoanDeduction > 0) && (
+            <p className="text-[11px] text-slate-400 mt-1">
+              Active loan balance: <strong className="text-amber-300">{formatCurrency(priorLoanBal)}</strong>
               {currentLoanDeduction > 0 && ` (Balance after recovery: ${formatCurrency(remainingLoanAfterDeduct)})`}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-3 text-center sm:text-right">
+        <div className="flex items-center gap-3 text-center sm:text-right z-1 shrink-0">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
               Total Net Payable
             </span>
-            <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400">
+            <span className="text-3xl sm:text-4xl font-black font-mono text-emerald-400 tracking-tight drop-shadow-xs">
               {formatCurrency(netTotal)}
             </span>
           </div>
@@ -525,11 +546,16 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
       </div>
 
       {/* ─────────────────────────────────────────────────────────────
+          LOANS & ADVANCES LEDGER (PLACED UNDER OVERALL PAYMENT CARD & ABOVE SALARY SETTLEMENT & PAYOUT)
+      ───────────────────────────────────────────────────────────── */}
+      {loanAdvanceCard}
+
+      {/* ─────────────────────────────────────────────────────────────
           6. PROFESSIONAL SALARY DISBURSEMENT & SETTLEMENT ACTION CARD
       ───────────────────────────────────────────────────────────── */}
       {existingPayment && !isEditing ? (
         /* Verified Paid Receipt Card */
-        <div className="p-4 sm:p-5 rounded-2xl bg-white border border-emerald-200/90 shadow-2xs">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-emerald-200/90 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start sm:items-center gap-3.5">
               <div className="p-2.5 rounded-xl bg-emerald-100 text-emerald-800 shrink-0">
@@ -537,26 +563,26 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold text-slate-900">
+                  <span className="text-sm font-bold text-slate-900">
                     Salary Settled &amp; Disbursed
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-900 border border-emerald-300">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-2xs">
                     Paid
                   </span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1">
-                    {existingPayment.paymentMethod === 'UPI' && <QrCode className="w-3 h-3 text-purple-600" />}
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200 inline-flex items-center gap-1 shadow-2xs">
+                    {existingPayment.paymentMethod === 'UPI' && <QrCode className="w-3 h-3 text-violet-600" />}
                     {existingPayment.paymentMethod === 'Cash' && <Banknote className="w-3 h-3 text-emerald-600" />}
                     {existingPayment.paymentMethod === 'Bank Transfer' && <Landmark className="w-3 h-3 text-blue-600" />}
                     <span>{existingPayment.paymentMethod}</span>
                   </span>
                 </div>
-                <div className="text-xs text-slate-500 mt-1 flex items-center gap-3 flex-wrap">
+                <div className="text-xs text-slate-500 mt-1.5 flex items-center gap-3 flex-wrap font-medium">
                   <span>
                     Disbursed on: <strong className="text-slate-800">{formatDatePretty(existingPayment.date)}</strong>
                   </span>
                   <span>•</span>
                   <span>
-                    Amount: <strong className="font-mono text-emerald-700 text-sm">{formatCurrency(existingPayment.net)}</strong>
+                    Amount: <strong className="font-mono text-emerald-700 text-sm font-bold">{formatCurrency(existingPayment.net)}</strong>
                   </span>
                   {existingPayment.notes && (
                     <>
@@ -572,7 +598,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="px-3 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-[0.98]"
               >
                 <Pencil className="w-3.5 h-3.5" />
                 <span>Edit</span>
@@ -588,7 +614,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
                     showToast(`Settlement record removed. Salary marked unpaid.`, 'info');
                   }
                 }}
-                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
                 title="Delete payment record"
               >
                 <Trash2 className="w-4 h-4" />
@@ -598,17 +624,17 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
         </div>
       ) : (
         /* Settlement Input Form Card */
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-2xs space-y-4">
+        <div className="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-purple-50 text-purple-700">
+              <div className="p-2 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200/70">
                 <Receipt className="w-4 h-4" />
               </div>
               <div>
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900">
                   {existingPayment ? 'Update Salary Settlement' : 'Salary Settlement & Payout'}
                 </h4>
-                <p className="text-[11px] text-slate-500">
+                <p className="text-[11px] text-slate-500 font-medium">
                   Record official disbursement of {formatCurrency(netTotal)} to {staff.name} for {formatMonthName(month)}
                 </p>
               </div>
@@ -675,11 +701,11 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
                     onClick={() => setSelectedMethod('UPI')}
                     className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       selectedMethod === 'UPI'
-                        ? 'bg-white text-purple-900 shadow-xs border border-purple-200'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white text-indigo-950 shadow-xs border border-indigo-200/80 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 font-medium'
                     }`}
                   >
-                    <QrCode className="w-3.5 h-3.5 text-purple-600" />
+                    <QrCode className="w-3.5 h-3.5 text-indigo-600" />
                     <span>UPI</span>
                   </button>
 
@@ -688,8 +714,8 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
                     onClick={() => setSelectedMethod('Cash')}
                     className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       selectedMethod === 'Cash'
-                        ? 'bg-white text-emerald-900 shadow-xs border border-emerald-200'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white text-emerald-950 shadow-xs border border-emerald-200/80 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 font-medium'
                     }`}
                   >
                     <Banknote className="w-3.5 h-3.5 text-emerald-600" />
@@ -701,8 +727,8 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
                     onClick={() => setSelectedMethod('Bank Transfer')}
                     className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                       selectedMethod === 'Bank Transfer'
-                        ? 'bg-white text-blue-900 shadow-xs border border-blue-200'
-                        : 'text-slate-600 hover:text-slate-900'
+                        ? 'bg-white text-blue-950 shadow-xs border border-blue-200/80 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 font-medium'
                     }`}
                   >
                     <Landmark className="w-3.5 h-3.5 text-blue-600" />
@@ -723,7 +749,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
                     required
                     value={paymentDate}
                     onChange={(e) => setPaymentDate(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 text-xs font-bold text-slate-900 border border-slate-300 rounded-xl bg-white focus:outline-hidden focus:border-purple-600"
+                    className="w-full pl-9 pr-3 py-2 text-xs font-bold text-slate-900 border border-slate-300/80 rounded-xl bg-slate-50/60 hover:bg-white focus:bg-white focus:outline-hidden focus:border-emerald-600 focus:ring-3 focus:ring-emerald-500/15 transition-all"
                   />
                 </div>
               </div>
@@ -744,7 +770,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
                       ? 'e.g. Handed over cash'
                       : 'e.g. NEFT / IMPS ref'
                   }
-                  className="w-full px-3 py-2 text-xs text-slate-900 border border-slate-300 rounded-xl bg-white focus:outline-hidden focus:border-purple-600"
+                  className="w-full px-3 py-2 text-xs text-slate-900 border border-slate-300/80 rounded-xl bg-slate-50/60 hover:bg-white focus:bg-white focus:outline-hidden focus:border-emerald-600 focus:ring-3 focus:ring-emerald-500/15 transition-all"
                 />
               </div>
             </div>
@@ -761,7 +787,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({ staff, month
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto px-5 py-2.5 text-xs font-black text-white bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] rounded-xl shadow-xs transition-all inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="w-full sm:w-auto px-6 py-2.5 text-xs font-black text-white bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.98] rounded-xl shadow-md shadow-emerald-600/20 transition-all inline-flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
               >
                 <Check className="w-4 h-4" />
                 <span>

@@ -512,18 +512,16 @@ export const AdvancesView: React.FC<AdvancesViewProps> = ({
                     </td>
 
                     <td className="py-3.5 px-3">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={`font-mono font-bold text-sm ${
-                            entry.type === 'advance_repay' ? 'text-emerald-700' : 'text-purple-900'
-                          }`}
-                        >
-                          {entry.type === 'advance_repay' ? '-' : ''}
-                          {formatCurrency(entry.amount)}
-                        </span>
-                        {entry.type === 'advance_repay' && (
-                          <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded">
-                            Repaid
+                      <div className="flex items-center gap-2">
+                        {entry.type === 'advance_repay' ? (
+                          <span className="font-mono font-bold text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-md inline-flex items-center gap-1.5 shadow-2xs">
+                            <span className="text-[10px] font-extrabold uppercase text-emerald-600 tracking-wider">Paid</span>
+                            <span className="text-sm font-black">+{formatCurrency(entry.amount)}</span>
+                          </span>
+                        ) : (
+                          <span className="font-mono font-bold text-xs text-rose-700 bg-rose-50 border border-rose-200/80 px-2.5 py-0.5 rounded-md inline-flex items-center gap-1.5 shadow-2xs">
+                            <span className="text-[10px] font-extrabold uppercase text-rose-500 tracking-wider">Debit</span>
+                            <span className="text-sm font-black">-{formatCurrency(entry.amount)}</span>
                           </span>
                         )}
                       </div>

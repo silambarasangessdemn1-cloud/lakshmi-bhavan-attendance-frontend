@@ -97,22 +97,9 @@ export const SalaryStudioModal: React.FC<SalaryStudioModalProps> = ({
       const monthAdv = getStaffAdvancesForMonth(activeStaffId, selectedMonth);
       setAdvanceDeduct(monthAdv);
 
-      // Automatically collect loan repayment from overall monthly salary
-      const member = staff.find((s) => s.id === activeStaffId);
-      const loanBal = getStaffLoanBalance(activeStaffId);
+      // Collect loan repayment calculated for this month
       const calc = calculateStaffPayroll(activeStaffId, selectedMonth);
-      const grossVal = calc ? calc.gross : 0;
-      const availableForLoan = Math.max(0, grossVal - monthAdv);
-
-      if (loanBal > 0 && member?.autoLoanDeduct !== false) {
-        const targetEmi =
-          member?.monthlyLoanDeduction && member.monthlyLoanDeduction > 0
-            ? member.monthlyLoanDeduction
-            : loanBal;
-        setLoanDeduct(Math.min(targetEmi, loanBal, availableForLoan));
-      } else {
-        setLoanDeduct(0);
-      }
+      setLoanDeduct(calc ? calc.currentLoanDeduction : 0);
       setPaymentNotes('');
     }
     setPaymentSuccessMsg(null);

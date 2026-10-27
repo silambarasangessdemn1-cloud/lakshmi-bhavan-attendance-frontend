@@ -424,13 +424,10 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (!member) return 0;
     const initial = Number(member.loanStart) || 0;
 
-    // Direct loan issues & direct loan repayments
+    // Direct loan issues
     const staffEntries = loanAdvances.filter((l) => l.staffId === staffId);
     const loansIssued = staffEntries
       .filter((l) => l.type === 'loan_issue')
-      .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
-    const directRepaid = staffEntries
-      .filter((l) => l.type === 'loan_repay')
       .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
 
     // Payments recorded deductions (deduplicated by month to prevent corruption!)
@@ -439,16 +436,36 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       .filter((p) => p.staffId === staffId)
       .forEach((p) => uniqueMonthPayments.set(p.month, p));
 
-    const salaryDeducted = Array.from(uniqueMonthPayments.values()).reduce(
-      (sum, p) => sum + (Number(p.loanDeduct) || 0),
-      0
-    );
     const paymentLoanAdded = Array.from(uniqueMonthPayments.values()).reduce(
       (sum, p) => sum + (Number(p.loanAdded) || 0),
       0
     );
 
-    return Math.max(0, initial + loansIssued + paymentLoanAdded - directRepaid - salaryDeducted);
+    // Loan repayments: For any month, loan repayment is settled through payment.loanDeduct
+    // or recorded via direct loan_repay entries. Take max per month to prevent double deduction.
+    const allRepayMonths = new Set<string>();
+    staffEntries.filter((l) => l.type === 'loan_repay').forEach((l) => {
+      const m = l.month || (l.date ? l.date.slice(0, 7) : '');
+      if (m) allRepayMonths.add(m);
+    });
+    uniqueMonthPayments.forEach((_, m) => allRepayMonths.add(m));
+
+    let totalRepaid = 0;
+    allRepayMonths.forEach((m) => {
+      const directInMonth = staffEntries
+        .filter((l) => l.type === 'loan_repay' && (l.month === m || l.date?.startsWith(m)))
+        .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
+      const paymentInMonth = uniqueMonthPayments.get(m);
+      const salaryDeductInMonth = paymentInMonth ? Number(paymentInMonth.loanDeduct) || 0 : 0;
+      totalRepaid += Math.max(directInMonth, salaryDeductInMonth);
+    });
+
+    const unassignedDirectRepaid = staffEntries
+      .filter((l) => l.type === 'loan_repay' && !l.month && !l.date)
+      .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
+    totalRepaid += unassignedDirectRepaid;
+
+    return Math.max(0, initial + loansIssued + paymentLoanAdded - totalRepaid);
   };
 
   // Payroll calculation
@@ -477,18 +494,31 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const directAdvance = getStaffAdvancesForMonth(staffId, month);
     const advanceMonth = monthPayment ? Number(monthPayment.advance) || 0 : directAdvance;
 
+    // Direct loan repayments recorded for this month (e.g. from "Repay Loan")
+    const staffEntries = loanAdvances.filter((l) => l.staffId === staffId);
+    const directLoanRepayMonth = staffEntries
+      .filter((l) => l.type === 'loan_repay' && (l.month === month || l.date?.startsWith(month)))
+      .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
+
     const outstandingLoan = getStaffLoanBalance(staffId);
     let currentLoanDeduction = 0;
     if (monthPayment) {
       currentLoanDeduction = Number(monthPayment.loanDeduct) || 0;
-    } else if (outstandingLoan > 0 && member.autoLoanDeduct !== false) {
-      // Auto-collect repayment from overall monthly salary
-      const targetEmi =
-        member.monthlyLoanDeduction && member.monthlyLoanDeduction > 0
-          ? member.monthlyLoanDeduction
-          : outstandingLoan;
+    } else {
+      // Prior loan balance before this month's direct loan repayment
+      const priorLoanBalance = outstandingLoan + directLoanRepayMonth;
       const availableEarnings = Math.max(0, gross - advanceMonth);
-      currentLoanDeduction = Math.min(targetEmi, outstandingLoan, availableEarnings);
+
+      let targetDeduction = directLoanRepayMonth;
+      if (member.autoLoanDeduct !== false && priorLoanBalance > 0) {
+        const targetEmi =
+          member.monthlyLoanDeduction && member.monthlyLoanDeduction > 0
+            ? member.monthlyLoanDeduction
+            : priorLoanBalance;
+        targetDeduction = Math.max(directLoanRepayMonth, Math.min(targetEmi, priorLoanBalance));
+      }
+
+      currentLoanDeduction = Math.min(targetDeduction, priorLoanBalance, availableEarnings);
     }
     const netPayable = Math.max(0, gross - advanceMonth - currentLoanDeduction);
 

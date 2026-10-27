@@ -153,20 +153,21 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
           className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-auto flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Modal Top Bar */}
-          <div className="p-4 sm:p-5 bg-slate-900 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 border-b border-slate-800">
             <div className="flex items-center gap-3.5">
-              <StaffAvatar name={staff.name} photo={staff.photo} size="lg" className="border-2 border-white/20" />
+              <StaffAvatar name={staff.name} photo={staff.photo} size="lg" className="border-2 border-emerald-400/30 shadow-md" />
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h2 className="text-lg font-bold tracking-tight text-white">{staff.name}</h2>
-                  <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-white/10 text-emerald-400">
+                  <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-white/10 text-emerald-300 border border-emerald-500/20">
                     {staff.id}
                   </span>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                    Active Staff
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 inline-flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Active Staff</span>
                   </span>
                 </div>
-                <p className="text-xs text-slate-300 mt-0.5">
+                <p className="text-xs text-slate-300 mt-1 font-medium">
                   {staff.designation}
                 </p>
                 {staff.joiningDate && (
@@ -183,7 +184,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                 <>
                   <a
                     href={`tel:${cleanPhone}`}
-                    className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+                    className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all shadow-xs"
                     title="Call Staff"
                   >
                     <Phone className="w-4 h-4" />
@@ -192,7 +193,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                     href={`https://wa.me/${cleanPhone}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white transition-colors"
+                    className="p-2 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white transition-all shadow-xs"
                     title="WhatsApp Chat"
                   >
                     <MessageCircle className="w-4 h-4" />
@@ -206,7 +207,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   onClose();
                   onEditStaff(staff);
                 }}
-                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all shadow-xs cursor-pointer"
                 title="Edit Staff Member"
               >
                 <Edit2 className="w-4 h-4" />
@@ -215,7 +216,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-colors"
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-white transition-all shadow-xs cursor-pointer"
                 title="Print Full Record"
               >
                 <Printer className="w-4 h-4" />
@@ -224,7 +225,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
               <button
                 type="button"
                 onClick={handleDeleteStaff}
-                className="p-2 bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 hover:text-white rounded-lg transition-colors"
+                className="p-2 bg-rose-500/20 hover:bg-rose-500/35 text-rose-300 hover:text-white rounded-xl transition-all shadow-xs cursor-pointer"
                 title="Delete Staff Member"
               >
                 <Trash2 className="w-4 h-4" />
@@ -233,7 +234,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-slate-300 hover:text-white transition-colors"
+                className="p-2 bg-white/10 hover:bg-white/20 rounded-xl text-slate-300 hover:text-white transition-all shadow-xs cursor-pointer"
                 title="Close"
               >
                 <X className="w-4 h-4" />
@@ -242,32 +243,34 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
           </div>
 
           {/* Sub-header Controls Bar */}
-          <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div className="px-4 sm:px-6 py-3 bg-white/95 backdrop-blur-md border-b border-slate-200/80 flex flex-wrap items-center justify-between gap-3 shrink-0 shadow-2xs">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-900">Month:</span>
-              <button
-                type="button"
-                onClick={() => handleShiftMonth(-1)}
-                className="p-1 rounded text-slate-800 hover:text-slate-950 hover:bg-slate-200"
-                title="Previous Month"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="px-2.5 py-1 text-xs font-bold border border-slate-300 rounded-lg text-slate-900 bg-white"
-              />
-              <button
-                type="button"
-                onClick={() => handleShiftMonth(1)}
-                className="p-1 rounded text-slate-800 hover:text-slate-950 hover:bg-slate-200"
-                title="Next Month"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <span className="text-xs font-bold text-slate-900 ml-1">
+              <span className="text-xs font-bold text-slate-700">Month:</span>
+              <div className="inline-flex items-center gap-1 bg-slate-100/90 p-1 rounded-xl border border-slate-200/70 shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => handleShiftMonth(-1)}
+                  className="p-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-2xs transition-all cursor-pointer"
+                  title="Previous Month"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </button>
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="px-1.5 py-0.5 text-xs font-bold text-slate-900 bg-transparent focus:outline-hidden cursor-pointer"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleShiftMonth(1)}
+                  className="p-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-white hover:shadow-2xs transition-all cursor-pointer"
+                  title="Next Month"
+                >
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <span className="text-xs font-bold text-indigo-950 ml-1 px-2.5 py-1 bg-indigo-50 border border-indigo-200/60 rounded-lg">
                 {formatMonthName(selectedMonth)}
               </span>
             </div>
@@ -279,12 +282,12 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   setAdvanceModalType('advance');
                   setIsAdvanceModalOpen(true);
                 }}
-                className="px-3 py-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-lg shadow-2xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-1.5 text-xs font-bold text-violet-800 bg-violet-50 hover:bg-violet-100/80 border border-violet-200 rounded-xl shadow-2xs transition-all inline-flex items-center gap-1.5 cursor-pointer active:scale-[0.98]"
                 title={`Record salary advance (Month Advance: ${formatCurrency(currentMonthAdvances)})`}
               >
-                <Wallet className="w-3.5 h-3.5 text-purple-600" />
+                <Wallet className="w-3.5 h-3.5 text-violet-600" />
                 <span>+Advance</span>
-                <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-purple-200/80 text-purple-950">
+                <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-violet-200/70 text-violet-950">
                   {formatCurrency(currentMonthAdvances)}
                 </span>
               </button>
@@ -295,12 +298,12 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   setLoanModalType('loan_issue');
                   setIsLoanModalOpen(true);
                 }}
-                className="px-3 py-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-300 rounded-lg shadow-2xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-1.5 text-xs font-bold text-amber-900 bg-amber-50 hover:bg-amber-100/80 border border-amber-200 rounded-xl shadow-2xs transition-all inline-flex items-center gap-1.5 cursor-pointer active:scale-[0.98]"
                 title={`Issue loan (Active Loan: ${formatCurrency(loanBal)})`}
               >
                 <CreditCard className="w-3.5 h-3.5 text-amber-600" />
                 <span>+ Loan</span>
-                <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-amber-200/80 text-amber-950">
+                <span className="font-mono text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-amber-200/70 text-amber-950">
                   {formatCurrency(loanBal)}
                 </span>
               </button>
@@ -311,7 +314,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                   onClose();
                   onOpenSalary(staff.id);
                 }}
-                className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-lg shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-xs shadow-indigo-600/20 transition-all inline-flex items-center gap-1.5 cursor-pointer active:scale-[0.98]"
                 title="Open Interactive Salary Studio"
               >
                 <Calculator className="w-3.5 h-3.5" />
@@ -321,7 +324,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsPayslipModalOpen(true)}
-                className="px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-xs transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-3.5 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl shadow-xs shadow-emerald-600/20 transition-all inline-flex items-center gap-1.5 cursor-pointer active:scale-[0.98]"
                 title="Generate & Print Payslip"
               >
                 <Receipt className="w-3.5 h-3.5" />
@@ -331,82 +334,86 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
           </div>
 
           {/* ALL DETAILS IN ONE SINGLE PAGE (No separated tabs) */}
-          <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 bg-slate-50/50">
+          <div className="p-4 sm:p-6 overflow-y-auto space-y-6 flex-1 bg-slate-100/60">
             {/* SECTION 1: PROFILE & BANKING DETAILS */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                  <User className="w-4 h-4 text-emerald-600" />
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
+                    <User className="w-4 h-4" />
+                  </div>
                   <span>Profile, Contact & Banking Details</span>
                 </h3>
-                <span className="text-xs font-semibold text-slate-700">Complete staff record</span>
+                <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200/60">
+                  Complete staff record
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                 {/* Staff ID */}
-                <div className="space-y-1">
-                  <span className="text-[11px] text-slate-900 block font-bold uppercase">Staff ID</span>
-                  <span className="font-mono font-bold text-slate-900 block bg-slate-50 px-2 py-0.5 rounded border border-slate-200 inline-block">
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Staff ID</span>
+                  <span className="font-mono font-bold text-slate-900 block text-xs">
                     {staff.id}
                   </span>
                 </div>
 
                 {/* Contact */}
-                <div className="space-y-1">
-                  <span className="text-[11px] text-slate-900 block font-bold uppercase">Phone Number</span>
-                  <span className="font-mono font-semibold text-slate-900 block">
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Phone Number</span>
+                  <span className="font-mono font-semibold text-slate-900 block text-xs">
                     {staff.phone || '—'}
                   </span>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-[11px] text-slate-900 block font-bold uppercase">Employment Status</span>
-                  <span className="font-semibold text-emerald-700 block capitalize">
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Employment Status</span>
+                  <span className="font-bold text-emerald-700 block capitalize text-xs">
                     {staff.status || 'Active'}
                   </span>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-[11px] text-slate-900 block font-bold uppercase">Daily Wage Rate</span>
-                  <span className="font-mono font-bold text-slate-900 block">
-                    {formatCurrency(staff.wage)} / day
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Daily Wage Rate</span>
+                  <span className="font-mono font-bold text-slate-900 block text-xs">
+                    {formatCurrency(staff.wage)} <span className="font-normal text-slate-400">/ day</span>
                   </span>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-[11px] text-slate-900 block font-bold uppercase">Overtime Rate</span>
-                  <span className="font-mono font-bold text-slate-900 block">
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Overtime Rate</span>
+                  <span className="font-mono font-bold text-slate-900 block text-xs">
                     {staff.otRate > 0 ? `${formatCurrency(staff.otRate)} / hr` : '—'}
                   </span>
                 </div>
 
                 {/* Bank details */}
-                <div className="space-y-1">
-                  <span className="text-[11px] text-slate-900 block font-bold uppercase">Bank Name</span>
-                  <span className="font-bold text-slate-900 block">
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Bank Name</span>
+                  <span className="font-bold text-slate-900 block text-xs">
                     {staff.bankName || 'Cash / Direct'}
                   </span>
                 </div>
 
-                <div className="space-y-1">
-                  <span className="text-[11px] text-slate-900 block font-bold uppercase">Account Holder</span>
-                  <span className="font-bold text-slate-900 block">
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 space-y-1">
+                  <span className="text-[10px] text-slate-500 block font-bold uppercase tracking-wider">Account Holder</span>
+                  <span className="font-bold text-slate-900 block text-xs">
                     {staff.accountHolder || staff.name}
                   </span>
                 </div>
 
-                <div className="space-y-1 sm:col-span-2">
+                <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-200/60 space-y-1 sm:col-span-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-slate-900 font-bold uppercase">Bank Account Number</span>
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Bank Account Number</span>
                     {staff.accountNumber && (
                       <button
                         type="button"
                         onClick={copyAccountNumber}
-                        className="text-[10px] text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1 font-semibold"
+                        className="text-[10px] text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1 font-bold cursor-pointer"
                       >
                         {copiedAccount ? (
                           <>
-                            <Check className="w-3 h-3" />
+                            <Check className="w-3 h-3 text-emerald-600" />
                             <span>Copied</span>
                           </>
                         ) : (
@@ -418,12 +425,12 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                       </button>
                     )}
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono font-bold text-slate-900 text-sm">
+                  <div className="flex items-center gap-2.5 mt-0.5">
+                    <span className="font-mono font-bold text-slate-900 text-xs">
                       {staff.accountNumber || 'Not configured'}
                     </span>
                     {staff.ifsc && (
-                      <span className="text-[11px] font-mono text-slate-900 font-bold bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                      <span className="text-[10px] font-mono text-slate-700 font-bold bg-white px-2 py-0.5 rounded border border-slate-200 shadow-2xs">
                         IFSC: {staff.ifsc}
                       </span>
                     )}
@@ -431,60 +438,62 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                 </div>
 
                 {staff.notes && (
-                  <div className="sm:col-span-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60">
-                    <span className="text-[10px] text-slate-900 font-bold uppercase block">Remarks / Notes</span>
-                    <p className="text-slate-900 italic text-xs mt-0.5 font-medium">{staff.notes}</p>
+                  <div className="sm:col-span-4 bg-slate-50/80 p-3 rounded-xl border border-slate-200/60">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Remarks / Notes</span>
+                    <p className="text-slate-800 italic text-xs mt-0.5 font-medium">{staff.notes}</p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* SECTION 2: MONTHLY SALARY CALCULATION & ATTENDANCE SUMMARY */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                  <Calculator className="w-4 h-4 text-blue-600" />
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+                    <Calculator className="w-4 h-4" />
+                  </div>
                   <span>Salary Calculation Summary — {formatMonthName(selectedMonth)}</span>
                 </h3>
-                <span className="text-xs font-bold text-slate-800">
+                <span className="text-xs font-bold font-mono text-blue-800 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200/60">
                   {payrollCalc.effectiveDays} Effective Days Logged
                 </span>
               </div>
 
               {/* KPI Cards Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-900 font-bold uppercase block">Days Present</span>
-                  <span className="text-base font-bold font-mono text-slate-900 mt-1 block">
+                <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200/80 hover:border-slate-300 transition-colors">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Days Present</span>
+                  <span className="text-base font-extrabold font-mono text-slate-900 mt-1 block">
                     {payrollCalc.daysCount}
                   </span>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-900 font-bold uppercase block">Half Days</span>
-                  <span className="text-base font-bold font-mono text-slate-900 mt-1 block">
+                <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200/80 hover:border-slate-300 transition-colors">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Half Days</span>
+                  <span className="text-base font-extrabold font-mono text-slate-900 mt-1 block">
                     {payrollCalc.halfDaysCount}
                   </span>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-900 font-bold uppercase block">Overtime (h)</span>
-                  <span className="text-base font-bold font-mono text-slate-900 mt-1 block">
+                <div className="p-3 bg-slate-50/90 rounded-xl border border-slate-200/80 hover:border-slate-300 transition-colors">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Overtime (h)</span>
+                  <span className="text-base font-extrabold font-mono text-slate-900 mt-1 block">
                     {payrollCalc.otHours} hrs
                   </span>
                 </div>
 
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-900 font-bold uppercase block">Gross Wages</span>
-                  <span className="text-base font-bold font-mono text-slate-900 mt-1 block">
+                <div className="p-3 bg-gradient-to-br from-emerald-50/90 to-teal-50/30 rounded-xl border border-emerald-200/80">
+                  <span className="text-[10px] text-emerald-800 font-bold uppercase tracking-wider block">Gross Wages</span>
+                  <span className="text-base font-extrabold font-mono text-emerald-950 mt-1 block">
                     {formatCurrency(payrollCalc.gross)}
                   </span>
                 </div>
 
-                <div className="p-3 bg-blue-50 rounded-xl border border-blue-200 flex flex-col justify-between">
+                <div className="p-3 bg-gradient-to-br from-rose-50/90 to-red-50/30 rounded-xl border border-rose-200/80 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] text-blue-950 font-bold uppercase block">Month Advance</span>
+                      <span className="text-[10px] text-rose-900 font-bold uppercase tracking-wider block">Month Advance (Debit)</span>
                       {currentMonthAdvances > 0 && (
                         <button
                           type="button"
@@ -499,252 +508,255 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                         </button>
                       )}
                     </div>
-                    <span className="text-base font-bold font-mono text-blue-900 mt-1 block">
-                      {formatCurrency(currentMonthAdvances)}
+                    <span className="text-base font-extrabold font-mono text-rose-950 mt-1 block">
+                      -{formatCurrency(currentMonthAdvances)}
                     </span>
                   </div>
                 </div>
 
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 flex flex-col justify-between">
+                <div className="p-3 bg-gradient-to-br from-amber-50/90 to-orange-50/30 rounded-xl border border-amber-200/80 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between gap-1">
-                      <span className="text-[10px] text-amber-950 font-bold uppercase block">Active Loan</span>
-                      <div className="flex items-center gap-1">
-                        
-                        {loanBal > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLoanModalType('loan_repay');
-                              setIsLoanModalOpen(true);
-                            }}
-                            className="text-[10px] font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-100 hover:bg-emerald-200 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
-                            title="Repay loan"
-                          >
-                            Repay
-                          </button>
-                        )}
-                      </div>
+                      <span className="text-[10px] text-amber-900 font-bold uppercase tracking-wider block">Active Loan</span>
+                      {loanBal > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLoanModalType('loan_repay');
+                            setIsLoanModalOpen(true);
+                          }}
+                          className="text-[10px] font-bold text-amber-800 hover:text-amber-950 bg-amber-100 hover:bg-amber-200 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
+                          title="Repay loan"
+                        >
+                          Repay
+                        </button>
+                      )}
                     </div>
-                    <span className="text-base font-bold font-mono text-amber-900 mt-1 block">
+                    <span className="text-base font-extrabold font-mono text-amber-950 mt-1 block">
                       {formatCurrency(loanBal)}
                     </span>
                     {loanBal > 0 && (
-                      <span className="text-[10px] text-amber-950 font-semibold block mt-0.5">
+                      <span className="text-[10px] text-amber-800 font-semibold block mt-0.5">
                         {staff.autoLoanDeduct !== false
-                          ? `Auto Repay: ₹${(staff.monthlyLoanDeduction && staff.monthlyLoanDeduction > 0 ? staff.monthlyLoanDeduction : loanBal).toLocaleString('en-IN')}/mo`
-                          : 'Manual Repay Only'}
+                          ? `₹${(staff.monthlyLoanDeduction && staff.monthlyLoanDeduction > 0 ? staff.monthlyLoanDeduction : loanBal).toLocaleString('en-IN')}/mo`
+                          : 'Manual only'}
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Net Payable Highlight Box */}
-                <div className="p-3 bg-emerald-600 text-white rounded-xl col-span-2 sm:col-span-4 lg:col-span-1 shadow-sm">
+                <div className="p-3 bg-gradient-to-br from-emerald-600 via-emerald-700 to-teal-800 text-white rounded-xl col-span-2 sm:col-span-4 lg:col-span-1 shadow-md shadow-emerald-900/15 flex flex-col justify-between">
                   <span className="text-[10px] text-emerald-100 font-bold uppercase tracking-wider block">Total Net Salary</span>
-                  <span className="text-base font-extrabold font-mono mt-1 block">
+                  <span className="text-base font-black font-mono mt-1 block tracking-tight">
                     {formatCurrency(payrollCalc.netPayable)}
                   </span>
                 </div>
               </div>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs text-slate-900 bg-slate-50/70 p-3 rounded-lg border border-slate-200/80">
-                <div className="flex items-center gap-4">
-                  <span>Basic: <strong>{formatCurrency(payrollCalc.wageEarnings)}</strong></span>
-                  <span>OT Pay: <strong>{formatCurrency(payrollCalc.otEarnings)}</strong></span>
-                  <span>Advance: <strong className="text-rose-600">-{formatCurrency(currentMonthAdvances)}</strong></span>
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs text-slate-800 bg-slate-50/90 p-3 rounded-xl border border-slate-200/80 font-medium">
+                <div className="flex items-center gap-4 flex-wrap">
+                  <span>Basic: <strong className="text-slate-900">{formatCurrency(payrollCalc.wageEarnings)}</strong></span>
+                  <span>OT Pay: <strong className="text-purple-700">+{formatCurrency(payrollCalc.otEarnings)}</strong></span>
+                  <span>Advance (Debit): <strong className="text-rose-600 font-mono">-{formatCurrency(currentMonthAdvances)}</strong></span>
                   {payrollCalc.currentLoanDeduction > 0 && (
-                    <span>Loan Repay: <strong className="text-amber-700">-{formatCurrency(payrollCalc.currentLoanDeduction)}</strong></span>
+                    <span>Loan Repay (Debit): <strong className="text-amber-700 font-mono">-{formatCurrency(payrollCalc.currentLoanDeduction)}</strong></span>
                   )}
                 </div>
-
-                {/* <button
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    onOpenSalary(staff.id);
-                  }}
-                  className="text-xs font-bold text-blue-700 hover:text-blue-800 underline flex items-center gap-1 cursor-pointer"
-                >
-                  <span>Settle & record disbursement in Salary Studio &rarr;</span>
-                </button> */}
               </div>
             </div>
 
-            {/* SECTION 3: COMPLETE MONTHLY ATTENDANCE & DAILY WAGE REGISTER */}
-            <StaffLedgerSheet staff={staff} month={selectedMonth} />
-
-            {/* SECTION 4: LOAN & FINANCIAL TRANSACTION LEDGER */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-2.5 gap-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                  <History className="w-4 h-4 text-amber-600" />
-                  <span>Loans & Advances Ledger ({loanAdvanceHistory.length} records)</span>
-                </h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs font-mono font-bold text-amber-800 mr-1">
-                    Loan Balance: {formatCurrency(loanBal)}
-                  </span>
-                  {loanBal > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLoanModalType('loan_repay');
-                        setIsLoanModalOpen(true);
-                      }}
-                      className="px-2.5 py-1 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Record loan repayment"
-                    >
-                      <HandCoins className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Repay Loan</span>
-                    </button>
-                  )}
-                  {currentMonthAdvances > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAdvanceModalType('advance_repay');
-                        setIsAdvanceModalOpen(true);
-                      }}
-                      className="px-2.5 py-1 text-xs font-semibold text-purple-800 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
-                      title="Record advance repayment"
-                    >
-                      <HandCoins className="w-3.5 h-3.5 text-purple-600" />
-                      <span>Repay Advance</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {loanBal > 0 && (
-                <div className="flex items-center justify-between bg-amber-50/80 border border-amber-200/80 rounded-lg px-3 py-2 text-xs text-amber-900">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold">Auto Salary Collection:</span>
-                    <span>
-                      {staff.autoLoanDeduct !== false
-                        ? `Active (${staff.monthlyLoanDeduction && staff.monthlyLoanDeduction > 0 ? `₹${staff.monthlyLoanDeduction.toLocaleString('en-IN')}/mo installment` : 'Full outstanding balance'})`
-                        : 'Disabled (Manual cash/bank repayment only)'}
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onClose();
-                      onEditStaff(staff);
-                    }}
-                    className="text-[11px] font-bold text-amber-700 hover:text-amber-900 underline cursor-pointer"
-                  >
-                    Edit Collection Plan
-                  </button>
-                </div>
-              )}
-
-              {loanAdvanceHistory.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-800 font-semibold bg-slate-50 rounded-xl border border-dashed border-slate-300">
-                  No advance or loan transactions recorded for this staff member.
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden text-xs">
-                  {loanAdvanceHistory.map((item) => (
-                    <div key={item.id} className="p-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                      <div>
-                        <div className="font-semibold text-slate-900 flex items-center gap-2">
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              item.type === 'advance'
-                                ? 'bg-blue-100 text-blue-800'
-                                : item.type === 'advance_repay'
-                                ? 'bg-emerald-100 text-emerald-800'
-                                : item.type === 'loan_issue'
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-emerald-100 text-emerald-800'
-                            }`}
-                          >
-                            {item.type === 'advance'
-                              ? 'Advance'
-                              : item.type === 'advance_repay'
-                              ? 'Advance Repaid'
-                              : item.type === 'loan_issue'
-                              ? 'Loan Issued'
-                              : 'Loan Repaid'}
-                          </span>
-                          <span>{formatDatePretty(item.date)}</span>
-                        </div>
-                        {item.notes && (
-                          <div className="text-[11px] text-slate-800 font-medium mt-0.5">{item.notes}</div>
-                        )}
+            {/* SECTION 3: COMPLETE MONTHLY ATTENDANCE, LOANS LEDGER & SALARY SETTLEMENT */}
+            <StaffLedgerSheet
+              staff={staff}
+              month={selectedMonth}
+              loanAdvanceCard={
+                <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2.5">
+                      <div className="p-1.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200/70">
+                        <History className="w-4 h-4" />
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono font-bold text-sm text-slate-900">
-                          {formatCurrency(item.amount)}
-                        </span>
+                      <span>Loans &amp; Advances Ledger ({loanAdvanceHistory.length} records)</span>
+                    </h3>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-xs font-mono font-bold text-amber-900 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200/80 mr-1">
+                        Loan Balance: {formatCurrency(loanBal)}
+                      </span>
+                      {loanBal > 0 && (
                         <button
                           type="button"
-                          onClick={async () => {
-                            const label =
-                              item.type === 'advance'
-                                ? 'advance'
-                                : item.type === 'advance_repay'
-                                ? 'advance repayment'
-                                : item.type === 'loan_issue'
-                                ? 'loan issue'
-                                : 'loan repay';
-                            if (
-                              window.confirm(
-                                `Delete this ${label} of ${formatCurrency(item.amount)} from ${formatDatePretty(
-                                  item.date
-                                )}?`
-                              )
-                            ) {
-                              await deleteLoanAdvance(item.id);
-                              showToast(`Deleted ${label} record of ${formatCurrency(item.amount)}.`, 'info');
-                            }
+                          onClick={() => {
+                            setLoanModalType('loan_repay');
+                            setIsLoanModalOpen(true);
                           }}
-                          className="p-1 text-slate-600 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
-                          title="Delete entry"
+                          className="px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-[0.98]"
+                          title="Record loan repayment"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <HandCoins className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Repay Loan</span>
                         </button>
-                      </div>
+                      )}
+                      {currentMonthAdvances > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAdvanceModalType('advance_repay');
+                            setIsAdvanceModalOpen(true);
+                          }}
+                          className="px-2.5 py-1 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-[0.98]"
+                          title="Record advance repayment"
+                        >
+                          <HandCoins className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Repay Advance</span>
+                        </button>
+                      )}
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+                  </div>
 
-            {/* SECTION 5: FINALIZED PAYMENT DISBURSEMENT HISTORY */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-2xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
-                  <Receipt className="w-4 h-4 text-emerald-600" />
+                  {loanBal > 0 && (
+                    <div className="flex items-center justify-between bg-gradient-to-r from-amber-50/90 to-orange-50/40 border border-amber-200/80 rounded-xl px-3.5 py-2.5 text-xs text-amber-950 shadow-2xs">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold">Auto Salary Collection:</span>
+                        <span>
+                          {staff.autoLoanDeduct !== false
+                            ? `Active (${staff.monthlyLoanDeduction && staff.monthlyLoanDeduction > 0 ? `₹${staff.monthlyLoanDeduction.toLocaleString('en-IN')}/mo installment` : 'Full outstanding balance'})`
+                            : 'Disabled (Manual cash/bank repayment only)'}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onEditStaff(staff);
+                        }}
+                        className="text-[11px] font-bold text-amber-800 hover:text-amber-950 underline cursor-pointer"
+                      >
+                        Edit Collection Plan
+                      </button>
+                    </div>
+                  )}
+
+                  {loanAdvanceHistory.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-slate-500 font-medium bg-slate-50/80 rounded-xl border border-dashed border-slate-200">
+                      No advance or loan transactions recorded for this staff member.
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-xl overflow-hidden text-xs bg-white">
+                      {loanAdvanceHistory.map((item) => (
+                        <div key={item.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50/80 transition-colors">
+                          <div>
+                            <div className="font-semibold text-slate-900 flex items-center gap-2">
+                              <span
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                                  item.type === 'advance'
+                                    ? 'bg-rose-50 text-rose-700 border border-rose-200/80'
+                                    : item.type === 'loan_issue'
+                                    ? 'bg-rose-50 text-rose-800 border border-rose-200/80'
+                                    : item.type === 'advance_repay'
+                                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
+                                    : 'bg-emerald-50 text-emerald-800 border border-emerald-200/80'
+                                }`}
+                              >
+                                {item.type === 'advance'
+                                  ? 'Advance · Debit'
+                                  : item.type === 'loan_issue'
+                                  ? 'Loan Issued · Debit'
+                                  : item.type === 'advance_repay'
+                                  ? 'Advance Repaid · Paid'
+                                  : 'Loan Repaid · Paid'}
+                              </span>
+                              <span className="font-medium text-slate-700">{formatDatePretty(item.date)}</span>
+                            </div>
+                            {item.notes && (
+                              <div className="text-[11px] text-slate-500 font-medium mt-1 pl-1">{item.notes}</div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            {item.type === 'advance' || item.type === 'loan_issue' ? (
+                              <span className="font-mono font-bold text-xs text-rose-700 bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200/80 inline-flex items-center gap-1.5 shadow-2xs">
+                                <span className="text-[10px] font-extrabold uppercase text-rose-500 tracking-wider">Debit</span>
+                                <span className="text-sm font-black">-{formatCurrency(item.amount)}</span>
+                              </span>
+                            ) : (
+                              <span className="font-mono font-bold text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200/80 inline-flex items-center gap-1.5 shadow-2xs">
+                                <span className="text-[10px] font-extrabold uppercase text-emerald-600 tracking-wider">Paid</span>
+                                <span className="text-sm font-black">+{formatCurrency(item.amount)}</span>
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                const label =
+                                  item.type === 'advance'
+                                    ? 'advance'
+                                    : item.type === 'advance_repay'
+                                    ? 'advance repayment'
+                                    : item.type === 'loan_issue'
+                                    ? 'loan issue'
+                                    : 'loan repay';
+                                if (
+                                  window.confirm(
+                                    `Delete this ${label} of ${formatCurrency(item.amount)} from ${formatDatePretty(
+                                      item.date
+                                    )}?`
+                                  )
+                                ) {
+                                  await deleteLoanAdvance(item.id);
+                                  showToast(`Deleted ${label} record of ${formatCurrency(item.amount)}.`, 'info');
+                                }
+                              }}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all cursor-pointer"
+                              title="Delete entry"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              }
+            />
+
+            {/* SECTION 4: FINALIZED PAYMENT DISBURSEMENT HISTORY */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+                    <Receipt className="w-4 h-4" />
+                  </div>
                   <span>Salary Payment Receipts ({staffPayments.length} records)</span>
                 </h3>
-                <span className="text-xs font-semibold text-slate-700">Past salary disbursements</span>
+                <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200/60">
+                  Past salary disbursements
+                </span>
               </div>
 
               {staffPayments.length === 0 ? (
-                <div className="p-6 text-center text-xs text-slate-800 font-semibold bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                <div className="p-6 text-center text-xs text-slate-500 font-medium bg-slate-50/80 rounded-xl border border-dashed border-slate-200">
                   No finalized salary payments recorded yet for this staff member.
                 </div>
               ) : (
-                <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden text-xs">
+                <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-xl overflow-hidden text-xs bg-white">
                   {staffPayments.map((p) => (
-                    <div key={p.id} className="p-3 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                    <div key={p.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50/80 transition-colors">
                       <div>
                         <div className="font-semibold text-slate-900">
                           {formatMonthName(p.month)} · Disbursed on {formatDatePretty(p.date)}
                         </div>
-                        <div className="text-[11px] text-slate-800 font-medium mt-0.5">
-                          Method: {p.paymentMethod} {p.notes ? `(${p.notes})` : ''} · Gross: {formatCurrency(p.gross)}
+                        <div className="text-[11px] text-slate-500 font-medium mt-0.5">
+                          Method: <strong className="text-slate-700">{p.paymentMethod}</strong> {p.notes ? `(${p.notes})` : ''} · Gross: {formatCurrency(p.gross)}
                         </div>
                       </div>
 
                       <div className="text-right">
-                        <span className="font-mono font-bold text-sm text-emerald-900 block">
+                        <span className="font-mono font-bold text-sm text-emerald-950 block">
                           {formatCurrency(p.net)}
                         </span>
-                        <span className="text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
                           Paid
                         </span>
                       </div>
