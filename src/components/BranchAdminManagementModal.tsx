@@ -15,6 +15,7 @@ import {
   EyeOff,
   Copy,
   Check,
+  Loader2,
 } from 'lucide-react';
 import { Branch, User } from '../types';
 import { api } from '../services/api';
@@ -44,6 +45,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
   const [isBranchFormOpen, setIsBranchFormOpen] = useState<boolean>(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isSavingBranch, setIsSavingBranch] = useState<boolean>(false);
   const [branchForm, setBranchForm] = useState({
     name: '',
     code: '',
@@ -56,6 +58,9 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
   // Admin Form Modal State
   const [isAdminFormOpen, setIsAdminFormOpen] = useState<boolean>(false);
   const [editingAdmin, setEditingAdmin] = useState<User | null>(null);
+  const [isSavingAdmin, setIsSavingAdmin] = useState<boolean>(false);
+  const [deletingBranchId, setDeletingBranchId] = useState<string | null>(null);
+  const [deletingAdminId, setDeletingAdminId] = useState<string | null>(null);
   const [adminForm, setAdminForm] = useState({
     name: '',
     username: '',
@@ -159,6 +164,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       `${branchForm.code.toLowerCase().replace(/[^a-z0-9]/g, '')}_admin`
     ).trim().toLowerCase();
 
+    setIsSavingBranch(true);
     try {
       if (editingBranch) {
         await api.updateBranch(editingBranch.id, {
@@ -191,6 +197,8 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       await loadAdmins();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to save branch.');
+    } finally {
+      setIsSavingBranch(false);
     }
   };
 
@@ -211,6 +219,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       return;
     }
 
+    setDeletingBranchId(branchId);
     try {
       await api.deleteBranch(branchId);
       showToast(`Branch "${branchName}" deleted.`, 'info');
@@ -218,6 +227,8 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       await loadAdmins();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to delete branch.');
+    } finally {
+      setDeletingBranchId(null);
     }
   };
 
@@ -269,6 +280,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       return;
     }
 
+    setIsSavingAdmin(true);
     try {
       if (editingAdmin) {
         await api.updateUser(editingAdmin.id, {
@@ -294,18 +306,23 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       await loadAdmins();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to save admin account.');
+    } finally {
+      setIsSavingAdmin(false);
     }
   };
 
   const handleDeleteAdmin = async (userId: string, username: string) => {
     if (!window.confirm(`Are you sure you want to remove admin account "${username}"?`)) return;
 
+    setDeletingAdminId(userId);
     try {
       await api.deleteUser(userId);
       showToast(`User "${username}" removed.`, 'info');
       await loadAdmins();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to remove admin.');
+    } finally {
+      setDeletingAdminId(null);
     }
   };
 
@@ -428,18 +445,26 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                           </div>
                           <div className="flex items-center gap-1">
                             <button
+                              type="button"
+                              disabled={deletingBranchId === b.id}
                               onClick={() => handleOpenEditBranch(b)}
-                              className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-emerald-600 rounded-lg hover:bg-emerald-50 transition-colors disabled:opacity-50 cursor-pointer"
                               title="Edit Branch / Change PIN"
                             >
                               <Edit2 className="w-4 h-4" />
                             </button>
                             <button
+                              type="button"
+                              disabled={deletingBranchId !== null}
                               onClick={() => handleDeleteBranch(b.id, b.name)}
-                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                               title="Delete Branch"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              {deletingBranchId === b.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
                             </button>
                           </div>
                         </div>
@@ -567,11 +592,17 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                         </button>
                         {u.role !== 'superadmin' && (
                           <button
+                            type="button"
+                            disabled={deletingAdminId !== null}
                             onClick={() => handleDeleteAdmin(u.id, u.username)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             title="Delete Admin"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            {deletingAdminId === u.id ? (
+                              <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
                         )}
                       </div>
@@ -611,8 +642,10 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                 </p>
               </div>
               <button
+                type="button"
+                disabled={isSavingBranch}
                 onClick={() => setIsBranchFormOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg disabled:opacity-50 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -728,16 +761,25 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
+                  disabled={isSavingBranch}
                   onClick={() => setIsBranchFormOpen(false)}
-                  className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+                  disabled={isSavingBranch}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[140px]"
                 >
-                  {editingBranch ? 'Save Changes' : 'Create Branch & Account'}
+                  {isSavingBranch ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{editingBranch ? 'Saving...' : 'Creating...'}</span>
+                    </>
+                  ) : (
+                    editingBranch ? 'Save Changes' : 'Create Branch & Account'
+                  )}
                 </button>
               </div>
             </form>
@@ -754,8 +796,10 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                 {editingAdmin ? 'Edit Admin Account' : 'Create Admin Account'}
               </h3>
               <button
+                type="button"
+                disabled={isSavingAdmin}
                 onClick={() => setIsAdminFormOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg"
+                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg disabled:opacity-50 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -848,16 +892,25 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
                 <button
                   type="button"
+                  disabled={isSavingAdmin}
                   onClick={() => setIsAdminFormOpen(false)}
-                  className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  className="px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer"
+                  disabled={isSavingAdmin}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white text-xs font-semibold rounded-lg shadow-sm transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2 min-w-[110px]"
                 >
-                  {editingAdmin ? 'Save Changes' : 'Create Admin'}
+                  {isSavingAdmin ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>{editingAdmin ? 'Saving...' : 'Creating...'}</span>
+                    </>
+                  ) : (
+                    editingAdmin ? 'Save Changes' : 'Create Admin'
+                  )}
                 </button>
               </div>
             </form>
