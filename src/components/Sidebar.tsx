@@ -13,6 +13,7 @@ import {
   HandCoins,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
+import logoImg from '../assets/logo.jpg';
 
 export type ActiveTab = 'dashboard' | 'staff' | 'attendance' | 'advances' | 'loans';
 
@@ -113,12 +114,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Brand Header */}
       <div className="p-5 border-b border-slate-800/80 flex items-center justify-between bg-slate-950/40">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 via-emerald-600 to-teal-500 flex items-center justify-center text-white font-black text-base shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-400/20 shrink-0">
-            <span className="tracking-tight">SL</span>
-          </div>
+          <img
+            src={logoImg}
+            alt="MSS Shree Lakshmi Bhavan Logo"
+            className="w-10 h-10 rounded-full object-cover ring-2 ring-emerald-500/40 shadow-lg shrink-0 bg-slate-950"
+          />
           <div className="min-w-0">
             <h1 className="text-sm font-bold text-white tracking-tight truncate flex items-center gap-1.5">
-              <span>{settings.companyName || 'Shree Lakshmi Bhavan'}</span>
+              <span>
+                {settings.companyName
+                  ? settings.companyName.includes('MSS')
+                    ? settings.companyName
+                    : `MSS ${settings.companyName}`
+                  : 'MSS Shree Lakshmi Bhavan'}
+              </span>
             </h1>
           </div>
         </div>

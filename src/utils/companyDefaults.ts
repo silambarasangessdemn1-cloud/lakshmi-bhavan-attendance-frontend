@@ -1,8 +1,8 @@
 import type { CompanySettings } from '../types';
 
 export const defaultCompanySettings: CompanySettings = {
-  companyName: 'Shree Lakshmi Bhavan',
-  tagline: '',
+  companyName: 'MSS Shree Lakshmi Bhavan',
+  tagline: 'Staff Salary & Attendance Manager',
   address: '',
   phone: '',
   currency: 'INR',

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 import { useAuth } from '../context/AuthContext';
+import logoImg from '../assets/logo.jpg';
 
 export type ActiveTab = 'staff' | 'attendance' | 'advances' | 'loans';
 
@@ -81,15 +82,33 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Top Tier: Brand, Desktop Branch Selector, and Action Tools */}
         <div className="flex items-center justify-between gap-2 sm:gap-4 h-14 sm:h-16">
           {/* Brand & Identity */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-600 via-emerald-500 to-teal-500 flex items-center justify-center text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-500/20 ring-2 ring-emerald-500/20 shrink-0">
-              <span className="tracking-tight">SLB</span>
+          <div className="flex items-center gap-2.5 sm:gap-3.5 min-w-0">
+            <div className="relative shrink-0">
+              <img
+                src={logoImg}
+                alt="MSS Shree Lakshmi Bhavan Logo"
+                className="w-9 h-9 sm:w-11 sm:h-11 rounded-full object-cover ring-2 ring-emerald-600/40 shadow-md shadow-emerald-950/20 bg-slate-950"
+              />
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
+                {isBackendConnected && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                )}
+                <span
+                  className={`relative inline-flex rounded-full h-3 w-3 border-2 border-white ${
+                    isBackendConnected ? 'bg-emerald-500' : 'bg-amber-500'
+                  }`}
+                />
+              </span>
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <h1 className="text-sm sm:text-base lg:text-lg font-black text-slate-900 tracking-tight truncate max-w-[140px] xs:max-w-[200px] sm:max-w-[280px] md:max-w-none">
-                  {settings.companyName || 'Shree Lakshmi Bhavan'}
+                  {settings.companyName
+                    ? settings.companyName.includes('MSS')
+                      ? settings.companyName
+                      : `MSS ${settings.companyName}`
+                    : 'MSS Shree Lakshmi Bhavan'}
                 </h1>
                 {/* Cloud Sync Status Indicator */}
                 <span

@@ -13,6 +13,7 @@ import {
   Store,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import logoImg from '../assets/logo.jpg';
 
 export const LoginView: React.FC = () => {
   const { login } = useAuth();
@@ -62,16 +63,20 @@ export const LoginView: React.FC = () => {
       {/* Main Container */}
       <div className="w-full max-w-md relative z-10 py-8">
         {/* Branding Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 shadow-xl shadow-emerald-500/25 mb-4 border border-emerald-300/30">
-            <Store className="w-8 h-8 text-white" />
+        <div className="text-center mb-8 flex flex-col items-center">
+          <div className="relative mb-4">
+            <img
+              src={logoImg}
+              alt="MSS Shree Lakshmi Bhavan Logo"
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover ring-4 ring-emerald-500/40 shadow-2xl shadow-emerald-500/30 bg-slate-950"
+            />
           </div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
-            Shree Lakshmi Bhavan
+          <h1 className="text-2xl font-black text-white tracking-tight sm:text-3xl">
+            MSS Shree Lakshmi Bhavan
           </h1>
-          <p className="mt-2 text-sm text-emerald-200/80 font-medium tracking-wide flex items-center justify-center gap-1.5">
-            <Sparkles className="w-4 h-4 text-emerald-400" />
-            Multi-Branch Staff & Payroll Management System
+          <p className="mt-2 text-xs sm:text-sm text-emerald-200/80 font-medium tracking-wide flex items-center justify-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0" />
+            Multi-Branch Staff &amp; Payroll Management System
           </p>
         </div>
 

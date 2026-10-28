@@ -381,7 +381,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{greeting}, {settings.companyName || 'Shree Lakshmi Bhavan'}</span>
+              <span>{greeting}, {settings.companyName ? (settings.companyName.includes('MSS') ? settings.companyName : `MSS ${settings.companyName}`) : 'MSS Shree Lakshmi Bhavan'}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               Workforce &amp; Financial Cockpit

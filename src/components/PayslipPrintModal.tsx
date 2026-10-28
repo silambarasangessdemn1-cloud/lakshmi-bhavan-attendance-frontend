@@ -10,6 +10,7 @@ import {
   formatDatePretty,
 } from '../utils/formatters';
 import { StaffLedgerSheet } from './StaffLedgerSheet';
+import logoImg from '../assets/logo.jpg';
 
 interface PayslipPrintModalProps {
   isOpen: boolean;
@@ -156,16 +157,29 @@ export const PayslipPrintModal: React.FC<PayslipPrintModalProps> = ({
             /* Standard Corporate Payslip */
             <div id="printable-payslip" className="p-4 sm:p-6 bg-white text-slate-900 font-sans space-y-6">
               {/* Header */}
-              <div className="border-b-2 border-slate-900 pb-5 flex flex-col sm:flex-row justify-between items-start gap-4">
-                <div>
-                  <h1 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
-                    {settings.companyName}
-                  </h1>
-                  <p className="text-xs text-slate-600 font-medium mt-0.5">{settings.tagline}</p>
-                  <p className="text-[11px] text-slate-500 mt-1 max-w-md">{settings.address}</p>
-                  {settings.phone && (
-                    <p className="text-[11px] text-slate-500 font-mono">Contact: {settings.phone}</p>
-                  )}
+              <div className="border-b-2 border-slate-900 pb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div className="flex items-center gap-3.5">
+                  <img
+                    src={logoImg}
+                    alt="MSS Shree Lakshmi Bhavan Logo"
+                    className="w-14 h-14 rounded-full object-cover ring-2 ring-emerald-600/30 shadow-sm shrink-0"
+                  />
+                  <div>
+                    <h1 className="text-xl font-bold tracking-tight text-slate-900 uppercase">
+                      {settings.companyName
+                        ? settings.companyName.includes('MSS')
+                          ? settings.companyName
+                          : `MSS ${settings.companyName}`
+                        : 'MSS Shree Lakshmi Bhavan'}
+                    </h1>
+                    <p className="text-xs text-slate-600 font-medium mt-0.5">{settings.tagline || 'Staff Salary & Attendance Manager'}</p>
+                    {settings.address && (
+                      <p className="text-[11px] text-slate-500 mt-1 max-w-md">{settings.address}</p>
+                    )}
+                    {settings.phone && (
+                      <p className="text-[11px] text-slate-500 font-mono">Contact: {settings.phone}</p>
+                    )}
+                  </div>
                 </div>
 
                 <div className="text-left sm:text-right shrink-0">

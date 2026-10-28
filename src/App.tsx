@@ -130,7 +130,7 @@ const MainLayout: React.FC = () => {
       {/* Modern Clean Footer */}
       <footer className="no-print mt-auto border-t border-slate-200/80 bg-white/80 backdrop-blur-md py-4">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-center text-xs text-slate-400">
-          <span>© {new Date().getFullYear()} {settings.companyName || 'Shree Lakshmi Bhavan'}. All rights reserved.</span>
+          <span>© {new Date().getFullYear()} {settings.companyName ? (settings.companyName.includes('MSS') ? settings.companyName : `MSS ${settings.companyName}`) : 'MSS Shree Lakshmi Bhavan'}. All rights reserved.</span>
         </div>
       </footer>
 
@@ -210,7 +210,7 @@ const AppContent: React.FC = () => {
     return (
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white">
         <div className="w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin mb-4" />
-        <p className="text-sm font-semibold text-emerald-300">Loading Shree Lakshmi Bhavan Workspace...</p>
+        <p className="text-sm font-semibold text-emerald-300">Loading MSS Shree Lakshmi Bhavan Workspace...</p>
       </div>
     );
   }

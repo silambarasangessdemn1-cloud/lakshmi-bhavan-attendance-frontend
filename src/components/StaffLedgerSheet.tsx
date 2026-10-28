@@ -24,6 +24,7 @@ import {
 import { StaffMember, AttendanceRecord, PaymentMethod } from '../types';
 import { useStaff } from '../context/StaffContext';
 import { StaffAvatar } from './StaffAvatar';
+import logoImg from '../assets/logo.jpg';
 import {
   formatCurrency,
   formatMonthName,
@@ -136,7 +137,33 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
       {/* ─────────────────────────────────────────────────────────────
           1. EXECUTIVE DOCUMENT HEADER
       ───────────────────────────────────────────────────────────── */}
-     
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-200 gap-4">
+        <div className="flex items-center gap-3.5">
+          <img
+            src={logoImg}
+            alt="MSS Shree Lakshmi Bhavan Logo"
+            className="w-12 h-12 rounded-full object-cover ring-2 ring-emerald-600/30 shadow-xs shrink-0"
+          />
+          <div>
+            <h2 className="text-lg font-black tracking-tight text-slate-900">
+              {settings.companyName
+                ? settings.companyName.includes('MSS')
+                  ? settings.companyName
+                  : `MSS ${settings.companyName}`
+                : 'MSS Shree Lakshmi Bhavan'}
+            </h2>
+            <p className="text-xs text-slate-500 font-medium">
+              Monthly Staff Attendance &amp; Salary Ledger · <span className="font-semibold text-emerald-700">{formatMonthName(month)}</span>
+            </p>
+          </div>
+        </div>
+        <div className="text-left sm:text-right shrink-0">
+          <span className="inline-block bg-slate-900 text-white font-mono text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md">
+            OFFICIAL STATEMENT
+          </span>
+          <p className="text-[11px] text-slate-400 mt-1">Generated: {formatDatePretty(getTodayDateString())}</p>
+        </div>
+      </div>
 
       {/* ─────────────────────────────────────────────────────────────
           2. STAFF IDENTITY STRIP (EXECUTIVE PASSPORT BADGE)
