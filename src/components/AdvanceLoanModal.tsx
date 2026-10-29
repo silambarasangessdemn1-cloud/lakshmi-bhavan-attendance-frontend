@@ -357,7 +357,7 @@ export const AdvanceLoanModal: React.FC<AdvanceLoanModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setType('advance')}
-                  title="Give Advance (-)"
+                  title="Give Advance (+)"
                   aria-label="Give Advance"
                   className={`py-2 text-xs font-semibold rounded-md transition-colors flex items-center justify-center ${
                     type === 'advance'
@@ -365,12 +365,12 @@ export const AdvanceLoanModal: React.FC<AdvanceLoanModalProps> = ({
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Minus className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setType('advance_repay')}
-                  title="Repay Advance (+)"
+                  title="Repay Advance (-)"
                   aria-label="Repay Advance"
                   className={`py-2 text-xs font-semibold rounded-md transition-colors flex items-center justify-center ${
                     type === 'advance_repay'
@@ -378,7 +378,7 @@ export const AdvanceLoanModal: React.FC<AdvanceLoanModalProps> = ({
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Minus className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -393,7 +393,7 @@ export const AdvanceLoanModal: React.FC<AdvanceLoanModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setType('loan_issue')}
-                  title="Issue Loan (-)"
+                  title="Issue Loan (+)"
                   aria-label="Issue Loan"
                   className={`py-2 text-xs font-semibold rounded-md transition-colors flex items-center justify-center ${
                     type === 'loan_issue'
@@ -401,12 +401,12 @@ export const AdvanceLoanModal: React.FC<AdvanceLoanModalProps> = ({
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Minus className="w-4 h-4" />
+                  <Plus className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setType('loan_repay')}
-                  title="Record Payment (+)"
+                  title="Record Payment (-)"
                   aria-label="Record Payment"
                   className={`py-2 text-xs font-semibold rounded-md transition-colors flex items-center justify-center ${
                     type === 'loan_repay'
@@ -414,7 +414,7 @@ export const AdvanceLoanModal: React.FC<AdvanceLoanModalProps> = ({
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Minus className="w-4 h-4" />
                 </button>
               </div>
             </div>
