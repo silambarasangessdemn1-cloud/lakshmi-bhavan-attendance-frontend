@@ -17,6 +17,8 @@ import {
   Check,
   Pencil,
   Trash2,
+  Undo2,
+  Split,
   QrCode,
   Banknote,
   Landmark,
@@ -85,7 +87,15 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
   const payroll = calculateStaffPayroll(staff.id, month);
   const grossSalary = payroll ? payroll.gross : 0;
   const currentLoanDeduction = payroll ? payroll.currentLoanDeduction : 0;
-  const netTotal = payroll ? payroll.netPayable : Math.max(0, grossSalary - totalAdvances - currentLoanDeduction);
+  // If already paid for this month, pending net payable is 0; otherwise gross - advances - loan deductions
+  const netPayablePending = existingPayment
+    ? 0
+    : payroll
+    ? payroll.netPayable
+    : Math.max(0, grossSalary - totalAdvances - currentLoanDeduction);
+  const settlementNetAmount = existingPayment
+    ? existingPayment.net
+    : Math.max(0, grossSalary - totalAdvances - currentLoanDeduction);
 
   const priorLoanBal = existingPayment ? activeLoanBal : activeLoanBal + directLoanRepayMonth;
   const remainingLoanAfterDeduct = Math.max(0, priorLoanBal - currentLoanDeduction);
@@ -93,6 +103,8 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
   const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>(
     existingPayment?.paymentMethod || 'Cash'
   );
+  const [splitCash, setSplitCash] = useState<number>(existingPayment?.splitCash || 0);
+  const [splitUpi, setSplitUpi] = useState<number>(existingPayment?.splitUpi || 0);
   const [paymentDate, setPaymentDate] = useState<string>(
     existingPayment?.date || getTodayDateString()
   );
@@ -104,11 +116,15 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
   useEffect(() => {
     if (existingPayment) {
       setSelectedMethod(existingPayment.paymentMethod || 'Cash');
+      setSplitCash(existingPayment.splitCash || 0);
+      setSplitUpi(existingPayment.splitUpi || 0);
       setPaymentDate(existingPayment.date || getTodayDateString());
       setPaymentNotes(existingPayment.notes || '');
       setIsEditing(false);
     } else {
       setSelectedMethod('Cash');
+      setSplitCash(0);
+      setSplitUpi(0);
       setPaymentDate(getTodayDateString());
       setPaymentNotes('');
       setIsEditing(false);
@@ -307,12 +323,18 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
           </div>
           <div className="mt-3">
             <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight">
-              {formatCurrency(netTotal)}
+              {formatCurrency(netPayablePending)}
             </span>
             <p className="text-[11px] text-slate-400 mt-1">
-              {currentLoanDeduction > 0
-                ? 'Gross − Advances − Loan = Net'
-                : 'Gross − Advances = Net'}
+              {existingPayment ? (
+                <span className="text-emerald-400 font-semibold">
+                  ✓ Paid & Settled ({formatCurrency(existingPayment.net)})
+                </span>
+              ) : currentLoanDeduction > 0 ? (
+                'Gross − Advances − Loan = Net'
+              ) : (
+                'Gross − Advances = Net'
+              )}
             </p>
           </div>
         </div>
@@ -563,11 +585,16 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
         <div className="flex items-center gap-3 text-center sm:text-right z-1 shrink-0">
           <div>
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-              Total Net Payable
+              {existingPayment ? 'Pending Net Payable' : 'Total Net Payable'}
             </span>
             <span className="text-3xl sm:text-4xl font-black font-mono text-emerald-400 tracking-tight drop-shadow-xs">
-              {formatCurrency(netTotal)}
+              {formatCurrency(netPayablePending)}
             </span>
+            {existingPayment && (
+              <span className="text-[10px] text-emerald-300 font-semibold block mt-0.5">
+                Paid: {formatCurrency(existingPayment.net)}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -600,8 +627,14 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
                     {existingPayment.paymentMethod === 'UPI' && <QrCode className="w-3 h-3 text-violet-600" />}
                     {existingPayment.paymentMethod === 'Cash' && <Banknote className="w-3 h-3 text-emerald-600" />}
                     {existingPayment.paymentMethod === 'Bank Transfer' && <Landmark className="w-3 h-3 text-blue-600" />}
+                    {existingPayment.paymentMethod === 'Split' && <Split className="w-3 h-3 text-amber-600" />}
                     <span>{existingPayment.paymentMethod}</span>
                   </span>
+                  {existingPayment.paymentMethod === 'Split' && (existingPayment.splitCash || existingPayment.splitUpi) && (
+                    <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                      Cash: {formatCurrency(existingPayment.splitCash || 0)} · UPI: {formatCurrency(existingPayment.splitUpi || 0)}
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-slate-500 mt-1.5 flex items-center gap-3 flex-wrap font-medium">
                   <span>
@@ -629,6 +662,23 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
               >
                 <Pencil className="w-3.5 h-3.5" />
                 <span>Edit</span>
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const confirmed = window.confirm(
+                    `Undo salary payment of ${formatCurrency(existingPayment.net)} for ${staff.name} (${formatMonthName(month)})?\nThis will mark the salary as unpaid and restore any pending balance.`
+                  );
+                  if (confirmed) {
+                    await deletePayment(existingPayment.id);
+                    showToast(`Salary payment undone. Marked as unpaid.`, 'info', 'Payment Undone');
+                  }
+                }}
+                className="px-3.5 py-1.5 text-xs font-bold text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs active:scale-[0.98]"
+                title="Undo salary payment and mark as unpaid"
+              >
+                <Undo2 className="w-3.5 h-3.5 text-amber-700" />
+                <span>Undo Paid</span>
               </button>
               <button
                 type="button"
@@ -662,7 +712,7 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
                   {existingPayment ? 'Update Salary Settlement' : 'Salary Settlement & Payout'}
                 </h4>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  Record official disbursement of {formatCurrency(netTotal)} to {staff.name} for {formatMonthName(month)}
+                  Record official disbursement of {formatCurrency(settlementNetAmount)} to {staff.name} for {formatMonthName(month)}
                 </p>
               </div>
             </div>
@@ -683,6 +733,21 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
               e.preventDefault();
               setIsSubmitting(true);
               try {
+                if (selectedMethod === 'Split' && (splitCash + splitUpi !== settlementNetAmount)) {
+                  showToast(
+                    `Split total (₹${splitCash + splitUpi}) must match net total (₹${settlementNetAmount}).`,
+                    'error',
+                    'Invalid Split Amount'
+                  );
+                  setIsSubmitting(false);
+                  return;
+                }
+
+                const defaultNotes =
+                  selectedMethod === 'Split'
+                    ? `Split settlement: Cash ₹${splitCash} + UPI ₹${splitUpi}`
+                    : `${selectedMethod} salary settlement for ${formatMonthName(month)}`;
+
                 await recordPayment({
                   date: paymentDate,
                   month: month,
@@ -696,14 +761,16 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
                   gross: grossSalary,
                   advance: totalAdvances,
                   loanDeduct: currentLoanDeduction,
-                  net: netTotal,
+                  net: settlementNetAmount,
                   status: 'Paid',
                   paymentMethod: selectedMethod,
-                  notes: paymentNotes.trim() || `${selectedMethod} salary settlement for ${formatMonthName(month)}`,
+                  splitCash: selectedMethod === 'Split' ? splitCash : 0,
+                  splitUpi: selectedMethod === 'Split' ? splitUpi : 0,
+                  notes: paymentNotes.trim() || defaultNotes,
                 });
 
                 showToast(
-                  `Salary of ${formatCurrency(netTotal)} settled via ${selectedMethod} for ${staff.name}`,
+                  `Salary of ${formatCurrency(settlementNetAmount)} settled via ${selectedMethod} for ${staff.name}`,
                   'success',
                   'Salary Settled'
                 );
@@ -722,44 +789,65 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
                 <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1.5">
                   Payment Method <span className="text-rose-500">*</span>
                 </label>
-                <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100 rounded-xl">
+                <div className="grid grid-cols-4 gap-1.5 p-1 bg-slate-100 rounded-xl">
                   <button
                     type="button"
                     onClick={() => setSelectedMethod('UPI')}
-                    className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`py-2 px-1 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer ${
                       selectedMethod === 'UPI'
                         ? 'bg-white text-indigo-950 shadow-xs border border-indigo-200/80 font-bold'
                         : 'text-slate-600 hover:text-slate-900 font-medium'
                     }`}
                   >
-                    <QrCode className="w-3.5 h-3.5 text-indigo-600" />
+                    <QrCode className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
                     <span>UPI</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSelectedMethod('Cash')}
-                    className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`py-2 px-1 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer ${
                       selectedMethod === 'Cash'
                         ? 'bg-white text-emerald-950 shadow-xs border border-emerald-200/80 font-bold'
                         : 'text-slate-600 hover:text-slate-900 font-medium'
                     }`}
                   >
-                    <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                    <Banknote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Cash</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setSelectedMethod('Bank Transfer')}
-                    className={`py-2 px-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    className={`py-2 px-1 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer ${
                       selectedMethod === 'Bank Transfer'
                         ? 'bg-white text-blue-950 shadow-xs border border-blue-200/80 font-bold'
                         : 'text-slate-600 hover:text-slate-900 font-medium'
                     }`}
                   >
-                    <Landmark className="w-3.5 h-3.5 text-blue-600" />
+                    <Landmark className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     <span>Bank</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedMethod('Split');
+                      if (splitCash === 0 && splitUpi === 0) {
+                        const halfCash = Math.round(settlementNetAmount / 2);
+                        setSplitCash(halfCash);
+                        setSplitUpi(settlementNetAmount - halfCash);
+                      }
+                    }}
+                    className={`py-2 px-1 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                      selectedMethod === 'Split'
+                        ? 'bg-white text-amber-950 shadow-xs border border-amber-300 font-bold'
+                        : 'text-slate-600 hover:text-slate-900 font-medium'
+                    }`}
+                    title="Split payment into Cash and UPI"
+                  >
+                    <Split className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Split</span>
                   </button>
                 </div>
               </div>
@@ -795,6 +883,8 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
                       ? 'e.g. GPay / PhonePe Txn ID'
                       : selectedMethod === 'Cash'
                       ? 'e.g. Handed over cash'
+                      : selectedMethod === 'Split'
+                      ? 'e.g. 10000 cash, 5000 UPI'
                       : 'e.g. NEFT / IMPS ref'
                   }
                   className="w-full px-3 py-2 text-xs text-slate-900 border border-slate-300/80 rounded-xl bg-slate-50/60 hover:bg-white focus:bg-white focus:outline-hidden focus:border-emerald-600 focus:ring-3 focus:ring-emerald-500/15 transition-all"
@@ -802,12 +892,121 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
               </div>
             </div>
 
+            {/* Split Amount Inputs if Split is selected */}
+            {selectedMethod === 'Split' && (
+              <div className="p-3.5 bg-amber-50/70 border border-amber-200/90 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Split className="w-4 h-4 text-amber-700" />
+                    <span className="text-xs font-bold uppercase tracking-wider text-amber-950">
+                      Split Payment Breakdown
+                    </span>
+                  </div>
+                  <span
+                    className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border ${
+                      splitCash + splitUpi === settlementNetAmount
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                        : 'bg-rose-50 text-rose-800 border-rose-300'
+                    }`}
+                  >
+                    Sum: {formatCurrency(splitCash + splitUpi)} / {formatCurrency(settlementNetAmount)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="bg-white p-3 rounded-xl border border-amber-200 space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Banknote className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Cash Amount</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSplitCash(settlementNetAmount);
+                          setSplitUpi(0);
+                        }}
+                        className="text-[10px] text-emerald-700 hover:underline cursor-pointer"
+                      >
+                        All Cash
+                      </button>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        ₹
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        max={settlementNetAmount}
+                        value={splitCash || ''}
+                        onChange={(e) => {
+                          const val = Math.max(0, Number(e.target.value) || 0);
+                          setSplitCash(val);
+                          setSplitUpi(Math.max(0, settlementNetAmount - val));
+                        }}
+                        placeholder="e.g. 10000"
+                        className="w-full pl-7 pr-3 py-1.5 text-xs font-mono font-bold text-slate-900 border border-slate-200 rounded-lg bg-white focus:outline-hidden focus:border-amber-600"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-white p-3 rounded-xl border border-amber-200 space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <QrCode className="w-3.5 h-3.5 text-violet-600" />
+                        <span>UPI / Online Amount</span>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSplitUpi(settlementNetAmount);
+                          setSplitCash(0);
+                        }}
+                        className="text-[10px] text-violet-700 hover:underline cursor-pointer"
+                      >
+                        All UPI
+                      </button>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">
+                        ₹
+                      </span>
+                      <input
+                        type="number"
+                        min="0"
+                        max={settlementNetAmount}
+                        value={splitUpi || ''}
+                        onChange={(e) => {
+                          const val = Math.max(0, Number(e.target.value) || 0);
+                          setSplitUpi(val);
+                          setSplitCash(Math.max(0, settlementNetAmount - val));
+                        }}
+                        placeholder="e.g. 5000"
+                        className="w-full pl-7 pr-3 py-1.5 text-xs font-mono font-bold text-slate-900 border border-slate-200 rounded-lg bg-white focus:outline-hidden focus:border-amber-600"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {splitCash + splitUpi !== settlementNetAmount && (
+                  <p className="text-[11px] text-rose-700 font-semibold flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>
+                      Difference: {formatCurrency(Math.abs(settlementNetAmount - (splitCash + splitUpi)))} (
+                      {splitCash + splitUpi < settlementNetAmount ? 'under by' : 'exceeds by'} this amount)
+                    </span>
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Settle Action Bar */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-100">
               <div className="text-xs text-slate-500">
                 Net settlement amount:{' '}
                 <span className="font-mono font-black text-sm text-slate-900">
-                  {formatCurrency(netTotal)}
+                  {formatCurrency(settlementNetAmount)}
                 </span>
               </div>
 
@@ -819,8 +1018,8 @@ export const StaffLedgerSheet: React.FC<StaffLedgerSheetProps> = ({
                 <Check className="w-4 h-4" />
                 <span>
                   {existingPayment
-                    ? `Update Settlement (${formatCurrency(netTotal)})`
-                    : `Mark Paid via ${selectedMethod} (${formatCurrency(netTotal)})`}
+                    ? `Update Settlement (${formatCurrency(settlementNetAmount)})`
+                    : `Mark Paid via ${selectedMethod} (${formatCurrency(settlementNetAmount)})`}
                 </span>
               </button>
             </div>

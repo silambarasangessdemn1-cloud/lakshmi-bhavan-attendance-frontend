@@ -265,19 +265,9 @@ export const AttendanceView: React.FC = () => {
   };
 
   const handleSaveDailyAttendance = () => {
-    const listToSave: AttendanceRecord[] = activeStaff.map((m) => {
-      const existing = draftRecords[m.id];
-      return {
-        id: existing?.id || `att-${m.id}-${selectedDate}`,
-        staffId: m.id,
-        date: selectedDate,
-        status: existing?.status || 'present',
-        inTime: existing?.inTime || '06:30',
-        outTime: existing?.outTime || '15:30',
-        ot: existing?.ot || 0,
-        notes: existing?.notes || '',
-      };
-    });
+    const listToSave: AttendanceRecord[] = Object.values(draftRecords).filter(
+      (r) => Boolean(r.status)
+    );
 
     replaceDateAttendance(selectedDate, listToSave);
     setHasUnsavedChanges(false);

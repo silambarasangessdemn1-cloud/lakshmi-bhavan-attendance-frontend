@@ -21,6 +21,7 @@ import {
   Clock,
   Wallet,
   Trash2,
+  Undo2,
   HandCoins,
   Plus,
 } from 'lucide-react';
@@ -61,6 +62,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
     calculateStaffPayroll,
     getStaffLoanAdvanceEntries,
     deleteLoanAdvance,
+    deletePayment,
     payments,
     selectedMonth,
     setSelectedMonth,
@@ -748,17 +750,42 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                           {formatMonthName(p.month)} · Disbursed on {formatDatePretty(p.date)}
                         </div>
                         <div className="text-[11px] text-slate-500 font-medium mt-0.5">
-                          Method: <strong className="text-slate-700">{p.paymentMethod}</strong> {p.notes ? `(${p.notes})` : ''} · Gross: {formatCurrency(p.gross)}
+                          Method: <strong className="text-slate-700">{p.paymentMethod}</strong>
+                          {p.paymentMethod === 'Split' && (p.splitCash || p.splitUpi) && (
+                            <span className="font-mono text-amber-800 font-bold ml-1">
+                              (Cash: {formatCurrency(p.splitCash || 0)} + UPI: {formatCurrency(p.splitUpi || 0)})
+                            </span>
+                          )}
+                          {' '}{p.notes ? `(${p.notes})` : ''} · Gross: {formatCurrency(p.gross)}
                         </div>
                       </div>
 
-                      <div className="text-right">
-                        <span className="font-mono font-bold text-sm text-emerald-950 block">
-                          {formatCurrency(p.net)}
-                        </span>
-                        <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
-                          Paid
-                        </span>
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <span className="font-mono font-bold text-sm text-emerald-950 block">
+                            {formatCurrency(p.net)}
+                          </span>
+                          <span className="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                            Paid
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const confirmed = window.confirm(
+                              `Undo salary payment of ${formatCurrency(p.net)} for ${staff.name} (${formatMonthName(p.month)})?\nThis will mark the salary as unpaid.`
+                            );
+                            if (confirmed) {
+                              await deletePayment(p.id);
+                              showToast(`Salary payment for ${formatMonthName(p.month)} undone. Marked as unpaid.`, 'info', 'Payment Undone');
+                            }
+                          }}
+                          className="px-2.5 py-1 text-xs font-bold text-amber-800 hover:text-amber-950 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all inline-flex items-center gap-1 cursor-pointer shadow-2xs active:scale-[0.98]"
+                          title="Undo payment and mark as unpaid"
+                        >
+                          <Undo2 className="w-3.5 h-3.5 text-amber-700" />
+                          <span>Undo</span>
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -775,8 +802,8 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
         onClose={() => setIsPayslipModalOpen(false)}
         calc={payrollCalc}
         settings={settings}
-        advanceDeduct={currentMonthAdvances}
-        loanDeduct={0}
+        advanceDeduct={payrollCalc.advanceMonth}
+        loanDeduct={payrollCalc.currentLoanDeduction}
         paymentMethod="Bank Transfer"
         paymentNotes=""
       />

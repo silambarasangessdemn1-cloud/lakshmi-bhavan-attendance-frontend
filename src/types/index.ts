@@ -60,7 +60,7 @@ export interface AttendanceRecord {
   notes?: string;
 }
 
-export type PaymentMethod = 'Bank Transfer' | 'Cash' | 'UPI' | 'Cheque';
+export type PaymentMethod = 'Bank Transfer' | 'Cash' | 'UPI' | 'Cheque' | 'Split';
 
 export interface PaymentRecord {
   id: string;
@@ -81,6 +81,9 @@ export interface PaymentRecord {
   net: number;
   status: 'Paid' | 'Pending';
   paymentMethod: PaymentMethod;
+  splitCash?: number;
+  splitUpi?: number;
+  splitBank?: number;
   notes: string;
   timestamp: number;
 }
@@ -123,5 +126,6 @@ export interface PayrollCalculation {
   outstandingLoan: number;
   currentLoanDeduction: number;
   netPayable: number;
+  isPaid?: boolean;
   attendanceRecords: AttendanceRecord[];
 }

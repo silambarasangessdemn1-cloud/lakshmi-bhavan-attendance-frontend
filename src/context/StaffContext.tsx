@@ -409,6 +409,13 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const getStaffAdvancesForMonth = (staffId: string, month: string): number => {
+    // If salary payment has already been recorded for this month,
+    // the advance was settled/deducted during payroll and no longer outstanding.
+    const monthPayment = payments.find((p) => p.staffId === staffId && p.month === month);
+    if (monthPayment) {
+      return 0;
+    }
+
     const issued = loanAdvances
       .filter((l) => l.staffId === staffId && l.type === 'advance' && l.month === month)
       .reduce((sum, l) => sum + (Number(l.amount) || 0), 0);
@@ -520,7 +527,8 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       currentLoanDeduction = Math.min(targetDeduction, priorLoanBalance, availableEarnings);
     }
-    const netPayable = Math.max(0, gross - advanceMonth - currentLoanDeduction);
+    const isPaid = !!monthPayment;
+    const netPayable = isPaid ? 0 : Math.max(0, gross - advanceMonth - currentLoanDeduction);
 
     return {
       staff: member,
@@ -537,6 +545,7 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       outstandingLoan,
       currentLoanDeduction,
       netPayable,
+      isPaid,
       attendanceRecords: monthRecords,
     };
   };
