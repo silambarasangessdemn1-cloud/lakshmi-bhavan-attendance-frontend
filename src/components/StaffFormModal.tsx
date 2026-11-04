@@ -238,17 +238,17 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     };
 
     if (staffToEdit) {
-      const success = await updateStaff(staffToEdit.id, payload);
-      if (!success) {
-        setError(`Staff ID "${trimmedId}" already belongs to another staff member.`);
+      const res = await updateStaff(staffToEdit.id, payload);
+      if (!res.success) {
+        setError(res.message || `Staff ID "${trimmedId}" already belongs to another staff member.`);
         return;
       }
       showToast(`Staff profile for ${payload.name} (${payload.id}) updated successfully!`, 'success');
       onClose();
     } else {
-      const success = await addStaff(payload);
-      if (!success) {
-        setError(`Staff ID "${trimmedId}" already exists. Please choose a unique custom ID.`);
+      const res = await addStaff(payload);
+      if (!res.success) {
+        setError(res.message || `Staff ID "${trimmedId}" already exists. Please choose a unique custom ID.`);
         return;
       }
       showToast(`New staff member ${payload.name} (${payload.id}) added successfully!`, 'success');

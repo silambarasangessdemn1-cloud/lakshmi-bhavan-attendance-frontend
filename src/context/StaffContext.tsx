@@ -28,8 +28,8 @@ interface StaffContextType {
   refreshData: () => Promise<void>;
 
   // Staff CRUD
-  addStaff: (member: StaffMember) => Promise<boolean>;
-  updateStaff: (id: string, member: Partial<StaffMember>) => Promise<boolean>;
+  addStaff: (member: StaffMember) => Promise<{ success: boolean; message?: string }>;
+  updateStaff: (id: string, member: Partial<StaffMember>) => Promise<{ success: boolean; message?: string }>;
   deleteStaff: (id: string) => Promise<void>;
   getStaff: (id: string) => StaffMember | undefined;
 
@@ -203,29 +203,52 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Staff helpers
   const getStaff = (id: string) => staff.find((s) => s.id === id);
 
-  const addStaff = async (member: StaffMember): Promise<boolean> => {
-    if (staff.some((s) => s.id.toLowerCase() === member.id.toLowerCase())) {
-      return false;
+  const addStaff = async (member: StaffMember): Promise<{ success: boolean; message?: string }> => {
+    const trimmedId = member.id.trim();
+    // 1. Check local state (case-insensitive)
+    if (staff.some((s) => s.id.toLowerCase() === trimmedId.toLowerCase())) {
+      return { success: false, message: `Staff ID "${trimmedId}" already exists in the system.` };
     }
-
-    setStaff((prev) => [...prev, member]);
 
     try {
       if (isBackendConnected) {
+        // Query backend to verify uniqueness across ALL branches
+        const allStaff = await api.getStaff();
+        if (allStaff.some((s) => s.id.trim().toLowerCase() === trimmedId.toLowerCase())) {
+          return { success: false, message: `Staff ID "${trimmedId}" already belongs to another staff profile.` };
+        }
         await api.createStaff(member);
       }
-    } catch (err) {
-      console.warn('Could not sync created staff to backend:', err);
+    } catch (err: any) {
+      console.warn('Backend create staff error:', err);
+      return { success: false, message: err.message || `Staff ID "${trimmedId}" is already registered.` };
     }
-    return true;
+
+    setStaff((prev) => [...prev, member]);
+    return { success: true };
   };
 
-  const updateStaff = async (id: string, member: Partial<StaffMember>): Promise<boolean> => {
+  const updateStaff = async (id: string, member: Partial<StaffMember>): Promise<{ success: boolean; message?: string }> => {
     const newId = member.id?.trim();
     if (newId && newId.toLowerCase() !== id.toLowerCase()) {
       if (staff.some((s) => s.id.toLowerCase() === newId.toLowerCase() && s.id.toLowerCase() !== id.toLowerCase())) {
-        return false;
+        return { success: false, message: `Staff ID "${newId}" already in use.` };
       }
+    }
+
+    try {
+      if (isBackendConnected) {
+        if (newId && newId.toLowerCase() !== id.toLowerCase()) {
+          const allStaff = await api.getStaff();
+          if (allStaff.some((s) => s.id.trim().toLowerCase() === newId.toLowerCase() && s.id.trim().toLowerCase() !== id.toLowerCase())) {
+            return { success: false, message: `Staff ID "${newId}" already in use.` };
+          }
+        }
+        await api.updateStaff(id, member);
+      }
+    } catch (err: any) {
+      console.warn('Backend update staff error:', err);
+      return { success: false, message: err.message || `Staff ID already belongs to another profile.` };
     }
 
     setStaff((prev) =>
@@ -252,14 +275,7 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       );
     }
 
-    try {
-      if (isBackendConnected) {
-        await api.updateStaff(id, member);
-      }
-    } catch (err) {
-      console.warn('Could not sync updated staff to backend:', err);
-    }
-    return true;
+    return { success: true };
   };
 
   const deleteStaff = async (id: string): Promise<void> => {
