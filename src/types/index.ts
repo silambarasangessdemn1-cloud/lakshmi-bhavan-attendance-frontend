@@ -43,6 +43,8 @@ export interface StaffMember {
   monthlyLoanDeduction?: number; // Automatic monthly repayment collected from salary
   autoLoanDeduct?: boolean; // Whether repayment is automatically collected from overall monthly salary
   photo?: string; // Base64 data URL
+  aadhaarNumber?: string; // 12-digit Aadhaar Card Number
+  aadhaarCard?: string; // Cloudinary URL or fallback image
   notes?: string;
   joiningDate?: string;
   status: 'active' | 'inactive';

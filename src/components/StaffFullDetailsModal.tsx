@@ -24,6 +24,8 @@ import {
   Undo2,
   HandCoins,
   Plus,
+  FileText,
+  ExternalLink,
 } from 'lucide-react';
 import { StaffMember, PayrollCalculation } from '../types';
 import { useStaff } from '../context/StaffContext';
@@ -72,6 +74,8 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
   } = useStaff();
 
   const [copiedAccount, setCopiedAccount] = useState(false);
+  const [copiedAadhaar, setCopiedAadhaar] = useState(false);
+  const [isAadhaarPreviewOpen, setIsAadhaarPreviewOpen] = useState(false);
   const [isPayslipModalOpen, setIsPayslipModalOpen] = useState(false);
   const [isAdvanceModalOpen, setIsAdvanceModalOpen] = useState(false);
   const [advanceModalType, setAdvanceModalType] = useState<'advance' | 'advance_repay'>('advance');
@@ -119,6 +123,15 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
       setCopiedAccount(true);
       showToast('Account number copied to clipboard', 'info');
       setTimeout(() => setCopiedAccount(false), 2000);
+    }
+  };
+
+  const copyAadhaarNumber = () => {
+    if (staff.aadhaarNumber) {
+      navigator.clipboard.writeText(staff.aadhaarNumber.replace(/\s+/g, ''));
+      setCopiedAadhaar(true);
+      showToast('Aadhaar number copied to clipboard', 'info');
+      setTimeout(() => setCopiedAadhaar(false), 2000);
     }
   };
 
@@ -437,6 +450,75 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                       </span>
                     )}
                   </div>
+                </div>
+
+                {/* Aadhaar Card Details & Verification */}
+                <div className="bg-sky-50/70 p-3 rounded-xl border border-sky-200/70 space-y-1.5 sm:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-sky-800 block font-bold uppercase tracking-wider flex items-center gap-1">
+                      <FileText className="w-3.5 h-3.5 text-sky-600" />
+                      Aadhaar Number
+                    </span>
+                    {staff.aadhaarNumber && (
+                      <button
+                        type="button"
+                        onClick={copyAadhaarNumber}
+                        className="text-[10px] text-sky-700 hover:text-sky-900 inline-flex items-center gap-1 font-bold cursor-pointer"
+                      >
+                        {copiedAadhaar ? (
+                          <>
+                            <Check className="w-3 h-3 text-emerald-600" />
+                            <span>Copied</span>
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3 h-3" />
+                            <span>Copy UID</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-slate-900 text-xs tracking-wider">
+                      {staff.aadhaarNumber || 'Not provided'}
+                    </span>
+                    {staff.aadhaarNumber && (
+                      <span className="text-[9px] font-bold text-sky-700 bg-sky-100 px-1.5 py-0.5 rounded">
+                        UIDAI
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="bg-sky-50/70 p-3 rounded-xl border border-sky-200/70 space-y-1.5 sm:col-span-2">
+                  <span className="text-[10px] text-sky-800 block font-bold uppercase tracking-wider">
+                    Aadhaar Document / Cloudinary
+                  </span>
+                  {staff.aadhaarCard ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setIsAadhaarPreviewOpen(true)}
+                        className="flex items-center gap-2 text-xs font-semibold text-sky-700 hover:text-sky-900 hover:underline cursor-pointer"
+                      >
+                        <FileText className="w-4 h-4 text-sky-600 shrink-0" />
+                        <span className="truncate">View Uploaded Aadhaar</span>
+                      </button>
+                      <a
+                        href={staff.aadhaarCard}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-bold text-sky-600 hover:text-sky-800 flex items-center gap-1 bg-white px-2 py-0.5 rounded border border-sky-200 shadow-2xs"
+                        title="Open document in new window"
+                      >
+                        <span>Open</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">No document uploaded</span>
+                  )}
                 </div>
 
                 {staff.notes && (
@@ -828,6 +910,61 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
           defaultType={loanModalType}
           mode="loan"
         />
+      )}
+
+      {/* Aadhaar Document Zoom / Preview Modal */}
+      {isAadhaarPreviewOpen && staff.aadhaarCard && (
+        <div
+          onClick={() => setIsAadhaarPreviewOpen(false)}
+          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-3xl w-full bg-white rounded-2xl overflow-hidden shadow-2xl border border-slate-700 flex flex-col max-h-[90vh]"
+          >
+            <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 text-white border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-sky-400" />
+                <span className="text-sm font-bold">
+                  {staff.name} — Aadhaar Card {staff.aadhaarNumber ? `(${staff.aadhaarNumber})` : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={staff.aadhaarCard}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2.5 py-1 text-xs font-semibold bg-sky-600 hover:bg-sky-500 text-white rounded-md flex items-center gap-1.5 transition-colors"
+                >
+                  <span>Open Full Size</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setIsAadhaarPreviewOpen(false)}
+                  className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <div className="p-4 overflow-auto flex-1 flex items-center justify-center bg-slate-100 min-h-[300px]">
+              {staff.aadhaarCard.startsWith('data:application/pdf') || staff.aadhaarCard.endsWith('.pdf') ? (
+                <iframe
+                  src={staff.aadhaarCard}
+                  title="Aadhaar Card PDF"
+                  className="w-full h-[65vh] rounded border border-slate-300"
+                />
+              ) : (
+                <img
+                  src={staff.aadhaarCard}
+                  alt={`Aadhaar Card for ${staff.name}`}
+                  className="max-h-[75vh] w-auto max-w-full rounded-lg object-contain shadow-md"
+                />
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

@@ -354,4 +354,42 @@ export const api = {
       method: 'POST',
     });
   },
+
+  // Upload to Cloudinary (or fallback)
+  uploadImage: async (file: File | Blob | string): Promise<{ url: string; success: boolean }> => {
+    const token = getAuthToken();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    if (typeof file === 'string') {
+      // Base64 or Data URI
+      const res = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers,
+        },
+        body: JSON.stringify({ image: file }),
+      });
+      if (!res.ok) {
+        throw new Error(`Upload failed with status ${res.status}`);
+      }
+      return res.json();
+    } else {
+      // Multipart FormData
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await fetch(`${API_BASE}/upload`, {
+        method: 'POST',
+        headers, // fetch will automatically set multipart/form-data boundary
+        body: formData,
+      });
+      if (!res.ok) {
+        throw new Error(`Upload failed with status ${res.status}`);
+      }
+      return res.json();
+    }
+  },
 };

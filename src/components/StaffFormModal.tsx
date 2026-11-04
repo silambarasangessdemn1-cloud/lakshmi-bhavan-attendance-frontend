@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Upload, Camera, Trash2, Calculator, Check, AlertCircle, Building2 } from 'lucide-react';
+import { X, Upload, Camera, Trash2, Calculator, Check, AlertCircle, Building2, FileText, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { StaffMember } from '../types';
 import { useStaff } from '../context/StaffContext';
 import { useAuth } from '../context/AuthContext';
 import { StaffAvatar } from './StaffAvatar';
 import { getTodayDateString, compressImageFile } from '../utils/formatters';
+import { api } from '../services/api';
 
 interface StaffFormModalProps {
   isOpen: boolean;
@@ -20,6 +21,9 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
   const { addStaff, updateStaff, deleteStaff, staff, showToast } = useStaff();
   const { branches, activeBranchId, isSuperAdmin, isBranchAdmin, user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const aadhaarFileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState<boolean>(false);
+  const [uploadingAadhaar, setUploadingAadhaar] = useState<boolean>(false);
 
   const defaultBranchId =
     (isBranchAdmin ? user?.branchId : activeBranchId !== 'all' ? activeBranchId : branches[0]?.id) || '';
@@ -37,6 +41,8 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     accountNumber: '',
     ifsc: '',
     loanStart: 0,
+    aadhaarNumber: '',
+    aadhaarCard: '',
     notes: '',
     photo: '',
     joiningDate: getTodayDateString(),
@@ -69,6 +75,8 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
         loanStart: 0,
         monthlyLoanDeduction: 0,
         autoLoanDeduct: true,
+        aadhaarNumber: '',
+        aadhaarCard: '',
         notes: '',
         photo: '',
         joiningDate: getTodayDateString(),
@@ -92,19 +100,89 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Please select an image smaller than 5 MB.');
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Please select an image smaller than 10 MB.');
       return;
     }
 
     try {
-      // Compress to 160x160 web thumbnail so storage remains tiny (<20KB)
-      const compressed = await compressImageFile(file, 160, 0.8);
-      setFormData((prev) => ({ ...prev, photo: compressed }));
+      setUploadingPhoto(true);
       setError(null);
-    } catch {
-      setError('Could not process image file.');
+      // Upload directly to Cloudinary via backend endpoint
+      const uploadRes = await api.uploadImage(file);
+      if (uploadRes && uploadRes.url) {
+        setFormData((prev) => ({ ...prev, photo: uploadRes.url }));
+        showToast('Profile photo uploaded to Cloudinary', 'success');
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err) {
+      console.warn('Direct upload failed, compressing locally:', err);
+      try {
+        // Fallback: Compress locally to 160x160 thumbnail
+        const compressed = await compressImageFile(file, 160, 0.8);
+        setFormData((prev) => ({ ...prev, photo: compressed }));
+        showToast('Profile photo attached', 'info');
+      } catch {
+        setError('Could not process image file.');
+      }
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
+  };
+
+  const handleAadhaarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Aadhaar document size should be smaller than 10 MB.');
+      return;
+    }
+
+    try {
+      setUploadingAadhaar(true);
+      setError(null);
+      // Upload to Cloudinary via backend endpoint
+      const res = await api.uploadImage(file);
+      if (res && res.url) {
+        setFormData((prev) => ({ ...prev, aadhaarCard: res.url }));
+        showToast('Aadhaar Card uploaded successfully to Cloudinary', 'success');
+      } else {
+        throw new Error('Upload failed');
+      }
+    } catch (err: any) {
+      console.error('Aadhaar upload error:', err);
+      // Fallback: Read as data URL so user work is never lost
+      try {
+        const reader = new FileReader();
+        reader.onload = (uploadEvent) => {
+          const result = uploadEvent.target?.result as string;
+          setFormData((prev) => ({ ...prev, aadhaarCard: result }));
+          showToast('Aadhaar Card attached locally', 'info');
+        };
+        reader.readAsDataURL(file);
+      } catch {
+        setError('Failed to upload Aadhaar document. Please try again.');
+      }
+    } finally {
+      setUploadingAadhaar(false);
+      // Reset input value so re-selecting same file triggers onChange
+      if (aadhaarFileInputRef.current) {
+        aadhaarFileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleAadhaarNumberChange = (value: string) => {
+    // Keep only numbers and max 12 digits
+    const clean = value.replace(/\D/g, '').slice(0, 12);
+    // Format as 4-4-4 spacing: "1234 5678 9012"
+    const formatted = clean.replace(/(\d{4})(?=\d)/g, '$1 ');
+    setFormData((prev) => ({ ...prev, aadhaarNumber: formatted }));
   };
 
   const handleAutoCalcOT = () => {
@@ -151,6 +229,8 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
       loanStart: Math.max(0, Number(formData.loanStart) || 0),
       monthlyLoanDeduction: Math.max(0, Number(formData.monthlyLoanDeduction) || 0),
       autoLoanDeduct: formData.autoLoanDeduct !== false,
+      aadhaarNumber: (formData.aadhaarNumber || '').trim(),
+      aadhaarCard: formData.aadhaarCard || '',
       photo: formData.photo || '',
       notes: (formData.notes || '').trim(),
       joiningDate: formData.joiningDate || getTodayDateString(),
@@ -249,16 +329,26 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors inline-flex items-center gap-1.5"
+                  disabled={uploadingPhoto}
+                  className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg transition-colors inline-flex items-center gap-1.5 cursor-pointer disabled:opacity-60"
                 >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Upload Photo</span>
+                  {uploadingPhoto ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-600" />
+                      <span>Uploading to Cloudinary...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Upload Profile Photo</span>
+                    </>
+                  )}
                 </button>
-                {formData.photo && (
+                {formData.photo && !uploadingPhoto && (
                   <button
                     type="button"
                     onClick={() => setFormData((prev) => ({ ...prev, photo: '' }))}
-                    className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg transition-colors inline-flex items-center gap-1"
+                    className="px-2.5 py-1.5 text-xs text-rose-600 hover:bg-rose-50 rounded-lg transition-colors inline-flex items-center gap-1 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>Remove</span>
@@ -266,7 +356,7 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                 )}
               </div>
               <p className="text-[11px] text-slate-400 mt-1">
-                JPG, PNG or WEBP up to 2MB. Optional.
+                JPG, PNG or WEBP up to 10MB. Stored directly on Cloudinary.
               </p>
             </div>
           </div>
@@ -649,6 +739,121 @@ export const StaffFormModal: React.FC<StaffFormModalProps> = ({
                   placeholder="e.g. SBIN0004211"
                   className="w-full px-3 py-2 text-sm font-mono uppercase border border-slate-200 rounded-lg bg-white text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
                 />
+              </div>
+            </div>
+          </div>
+
+          {/* Aadhaar Card Verification & Document Upload (Cloudinary) */}
+          <div className="p-4 bg-sky-50/50 rounded-xl border border-sky-200/80 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-sky-700" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-sky-900">
+                  Aadhaar Card & Identity Verification
+                </h3>
+              </div>
+              <span className="text-[10px] font-semibold text-sky-700 bg-sky-100 px-2 py-0.5 rounded-full">
+                Cloudinary Storage
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  12-Digit Aadhaar Number
+                </label>
+                <input
+                  type="text"
+                  maxLength={14}
+                  value={formData.aadhaarNumber || ''}
+                  onChange={(e) => handleAadhaarNumberChange(e.target.value)}
+                  placeholder="XXXX XXXX XXXX"
+                  className="w-full px-3 py-2 text-sm font-mono font-bold tracking-wider border border-slate-200 rounded-lg bg-white text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-600"
+                />
+                <span className="text-[10px] text-slate-500 mt-1 block">
+                  Official Indian Unique Identification (UIDAI)
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Aadhaar Card Document / Photo
+                </label>
+                <input
+                  ref={aadhaarFileInputRef}
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={handleAadhaarUpload}
+                  className="hidden"
+                />
+                
+                {formData.aadhaarCard ? (
+                  <div className="flex items-center gap-3 p-2.5 bg-white border border-sky-200 rounded-lg shadow-2xs">
+                    {formData.aadhaarCard.startsWith('data:application/pdf') || formData.aadhaarCard.endsWith('.pdf') ? (
+                      <div className="w-12 h-12 rounded-md bg-rose-50 border border-rose-200 flex items-center justify-center shrink-0">
+                        <FileText className="w-6 h-6 text-rose-600" />
+                      </div>
+                    ) : (
+                      <img
+                        src={formData.aadhaarCard}
+                        alt="Aadhaar Document"
+                        className="w-12 h-12 rounded-md object-cover border border-slate-200 shrink-0"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Aadhaar Document Attached</span>
+                      </div>
+                      <a
+                        href={formData.aadhaarCard}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] text-sky-600 hover:text-sky-800 underline truncate block"
+                      >
+                        View Full Document
+                      </a>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => aadhaarFileInputRef.current?.click()}
+                        disabled={uploadingAadhaar}
+                        className="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded transition-colors"
+                        title="Replace document"
+                      >
+                        <Upload className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, aadhaarCard: '' }))}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                        title="Remove document"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => aadhaarFileInputRef.current?.click()}
+                    disabled={uploadingAadhaar}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed border-sky-200 hover:border-sky-400 rounded-lg bg-white/70 hover:bg-white text-xs font-semibold text-sky-700 transition-colors cursor-pointer"
+                  >
+                    {uploadingAadhaar ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-sky-600" />
+                        <span>Uploading to Cloudinary...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-4 h-4 text-sky-600" />
+                        <span>Upload Aadhaar Photo / Scan</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>
