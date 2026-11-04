@@ -145,8 +145,12 @@ export const api = {
   },
 
   // Users (Branch Admins / Super Admins)
-  getUsers: async (): Promise<User[]> => {
-    const res = await request<ApiResponse<User[]>>('/users');
+  getUsers: async (params?: { includeDeleted?: boolean; deletedOnly?: boolean }): Promise<User[]> => {
+    const query = new URLSearchParams();
+    if (params?.includeDeleted) query.set('includeDeleted', 'true');
+    if (params?.deletedOnly) query.set('deletedOnly', 'true');
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const res = await request<ApiResponse<User[]>>(`/users${qs}`);
     return res.data || [];
   },
 
@@ -173,10 +177,18 @@ export const api = {
     return res.data!;
   },
 
-  deleteUser: async (id: string): Promise<void> => {
-    await request<ApiResponse>(`/users/${encodeURIComponent(id)}`, {
+  deleteUser: async (id: string, options?: { permanent?: boolean }): Promise<void> => {
+    const qs = options?.permanent ? '?permanent=true' : '';
+    await request<ApiResponse>(`/users/${encodeURIComponent(id)}${qs}`, {
       method: 'DELETE',
     });
+  },
+
+  restoreUser: async (id: string): Promise<User> => {
+    const res = await request<ApiResponse<User>>(`/users/${encodeURIComponent(id)}/restore`, {
+      method: 'POST',
+    });
+    return res.data!;
   },
 
   // Staff

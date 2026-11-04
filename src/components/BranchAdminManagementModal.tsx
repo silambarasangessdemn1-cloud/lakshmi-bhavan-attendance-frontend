@@ -16,6 +16,8 @@ import {
   Copy,
   Check,
   Loader2,
+  RotateCcw,
+  ArchiveRestore,
 } from 'lucide-react';
 import { Branch, User } from '../types';
 import { api } from '../services/api';
@@ -34,12 +36,15 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
   const { branches, refreshBranches, isSuperAdmin } = useAuth();
   const { staff, showToast } = useStaff();
 
-  const [activeTab, setActiveTab] = useState<'branches' | 'admins'>('branches');
+  const [activeTab, setActiveTab] = useState<'branches' | 'admins' | 'trash'>('branches');
   const [userList, setUserList] = useState<User[]>([]);
+  const [trashList, setTrashList] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [successMsg, setSuccessMsg] = useState<string>('');
   const [copiedText, setCopiedText] = useState<string | null>(null);
+  const [restoringAdminId, setRestoringAdminId] = useState<string | null>(null);
+  const [permanentDeletingId, setPermanentDeletingId] = useState<string | null>(null);
 
   // Branch Form Modal State
   const [isBranchFormOpen, setIsBranchFormOpen] = useState<boolean>(false);
@@ -70,12 +75,16 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
     role: 'admin' as 'admin' | 'superadmin',
   });
 
-  // Load admins list
+  // Load admins list (both active and trash)
   const loadAdmins = async () => {
     setIsLoading(true);
     try {
-      const data = await api.getUsers();
-      setUserList(data);
+      const [activeUsers, trashedUsers] = await Promise.all([
+        api.getUsers({ includeDeleted: false }),
+        api.getUsers({ deletedOnly: true }),
+      ]);
+      setUserList(activeUsers);
+      setTrashList(trashedUsers);
     } catch (err: any) {
       console.warn('Could not fetch admins:', err);
     } finally {
@@ -312,17 +321,45 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
   };
 
   const handleDeleteAdmin = async (userId: string, username: string) => {
-    if (!window.confirm(`Are you sure you want to remove admin account "${username}"?`)) return;
+    if (!window.confirm(`Move admin account "${username}" to Trash?\n\nYou can recover this admin anytime from the Trash tab without losing their credentials or assignments.`)) return;
 
     setDeletingAdminId(userId);
     try {
       await api.deleteUser(userId);
-      showToast(`User "${username}" removed.`, 'info');
+      showToast(`Admin "${username}" moved to Trash. You can recover it anytime.`, 'info');
       await loadAdmins();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to remove admin.');
     } finally {
       setDeletingAdminId(null);
+    }
+  };
+
+  const handleRestoreAdmin = async (userId: string, username: string) => {
+    setRestoringAdminId(userId);
+    try {
+      await api.restoreUser(userId);
+      showToast(`Admin "${username}" restored successfully without any data loss!`, 'success');
+      await loadAdmins();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to restore admin.');
+    } finally {
+      setRestoringAdminId(null);
+    }
+  };
+
+  const handlePermanentDelete = async (userId: string, username: string) => {
+    if (!window.confirm(`Permanently delete admin account "${username}"?\nThis cannot be undone.`)) return;
+
+    setPermanentDeletingId(userId);
+    try {
+      await api.deleteUser(userId, { permanent: true });
+      showToast(`Admin "${username}" permanently deleted.`, 'info');
+      await loadAdmins();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to permanently delete admin.');
+    } finally {
+      setPermanentDeletingId(null);
     }
   };
 
@@ -389,6 +426,17 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
               <Users className="w-4 h-4" />
               <span>Admin Logins ({userList.filter((u) => !!u.username).length})</span>
             </button>
+            <button
+              onClick={() => setActiveTab('trash')}
+              className={`pb-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                activeTab === 'trash'
+                  ? 'border-rose-600 text-rose-700'
+                  : 'border-transparent text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              <Trash2 className="w-4 h-4" />
+              <span>Trash / Recycle Bin ({trashList.length})</span>
+            </button>
           </div>
 
           <div className="pb-3">
@@ -400,7 +448,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                 <Plus className="w-3.5 h-3.5" />
                 <span>+ Add Branch &amp; Login</span>
               </button>
-            ) : (
+            ) : activeTab === 'admins' ? (
               <button
                 onClick={handleOpenAddAdmin}
                 className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
@@ -408,6 +456,10 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                 <Plus className="w-3.5 h-3.5" />
                 <span>Create Admin</span>
               </button>
+            ) : (
+              <span className="text-xs text-slate-500 italic">
+                Deleted admins can be restored anytime
+              </span>
             )}
           </div>
         </div>
@@ -526,7 +578,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                 })
               )}
             </div>
-          ) : (
+          ) : activeTab === 'admins' ? (
             /* ADMINS LIST */
             <div className="space-y-3">
               {userList.filter((u) => !!u.username).length === 0 ? (
@@ -596,7 +648,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                             disabled={deletingAdminId !== null}
                             onClick={() => handleDeleteAdmin(u.id, u.username)}
                             className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Delete Admin"
+                            title="Move to Trash"
                           >
                             {deletingAdminId === u.id ? (
                               <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
@@ -605,6 +657,98 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                             )}
                           </button>
                         )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          ) : (
+            /* TRASH / RECYCLE BIN */
+            <div className="space-y-3">
+              {trashList.length === 0 ? (
+                <div className="py-12 text-center text-slate-400">
+                  <ArchiveRestore className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+                  <p className="text-sm font-medium">Trash is empty.</p>
+                  <p className="text-xs mt-1">
+                    When you remove a branch admin, it will appear here so you can recover it without losing any data.
+                  </p>
+                </div>
+              ) : (
+                trashList.map((u) => {
+                  const assignedBranch = branches.find((b) => b.id === u.branchId);
+
+                  return (
+                    <div
+                      key={u.id}
+                      className="p-4 rounded-xl border border-rose-200 bg-rose-50/30 flex items-center justify-between transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm bg-rose-100 text-rose-800 border border-rose-200">
+                          {u.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-slate-800 text-sm line-through opacity-75">
+                              {u.name}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700">
+                              In Trash
+                            </span>
+                          </div>
+                          <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
+                            <span>
+                              Username: <strong className="text-slate-700">{u.username}</strong>
+                            </span>
+                            {u.role === 'admin' && (
+                              <span className="flex items-center gap-1 text-slate-600 font-medium">
+                                <Building2 className="w-3.5 h-3.5" />
+                                <span>{assignedBranch?.name || 'Assigned Branch'}</span>
+                              </span>
+                            )}
+                            {u.deletedAt && (
+                              <span className="text-[11px] text-slate-400">
+                                Deleted: {new Date(u.deletedAt).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          disabled={restoringAdminId === u.id}
+                          onClick={() => handleRestoreAdmin(u.id, u.username)}
+                          className="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                          title="Recover admin without losing credentials or data"
+                        >
+                          {restoringAdminId === u.id ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Restoring...</span>
+                            </>
+                          ) : (
+                            <>
+                              <RotateCcw className="w-3.5 h-3.5" />
+                              <span>Recover Admin</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={permanentDeletingId === u.id}
+                          onClick={() => handlePermanentDelete(u.id, u.username)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
+                          title="Delete Permanently"
+                        >
+                          {permanentDeletingId === u.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                          ) : (
+                            <Trash2 className="w-4 h-4" />
+                          )}
+                        </button>
                       </div>
                     </div>
                   );

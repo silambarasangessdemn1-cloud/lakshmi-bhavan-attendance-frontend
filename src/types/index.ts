@@ -23,6 +23,8 @@ export interface User {
   branchName?: string | null;
   phone?: string;
   status?: 'active' | 'inactive';
+  isDeleted?: boolean;
+  deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }
