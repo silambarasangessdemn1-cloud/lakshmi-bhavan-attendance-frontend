@@ -23,6 +23,7 @@ import {
   BadgeAlert,
   Trash2,
   CornerDownLeft,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 import { StaffMember } from '../types';
@@ -31,10 +32,12 @@ import { formatCurrency, formatMonthName } from '../utils/formatters';
 import { StaffFullDetailsModal } from './StaffFullDetailsModal';
 import { SalaryStudioModal } from './SalaryStudioModal';
 import { AdvanceLoanModal } from './AdvanceLoanModal';
+import { TransferStaffModal } from './TransferStaffModal';
 
 interface StaffDirectoryViewProps {
   onEditStaff: (staff: StaffMember) => void;
   onOpenAddStaff: () => void;
+  onOpenTransfer?: (staff: StaffMember) => void;
 }
 
 export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
@@ -61,6 +64,7 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
   const [selectedStaffForDetails, setSelectedStaffForDetails] = useState<StaffMember | null>(null);
   const [selectedStaffForSalary, setSelectedStaffForSalary] = useState<StaffMember | null>(null);
   const [selectedStaffForAdvance, setSelectedStaffForAdvance] = useState<StaffMember | null>(null);
+  const [selectedStaffForTransfer, setSelectedStaffForTransfer] = useState<StaffMember | null>(null);
   const [selectedStaffForLoan, setSelectedStaffForLoan] = useState<{
     staff: StaffMember;
     defaultType: 'loan_issue' | 'loan_repay';
@@ -324,6 +328,18 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
           </span>
 
           <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedStaffForTransfer(member);
+              }}
+              className="p-1.5 text-slate-700 hover:text-emerald-700 bg-slate-100 hover:bg-emerald-50 border border-slate-300 rounded-xl transition-all shadow-2xs cursor-pointer"
+              title="Transfer to Another Branch"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5" />
+            </button>
+
             <button
               type="button"
               onClick={(e) => {
@@ -676,7 +692,20 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
                               <ArrowUpRight className="w-3 h-3 text-emerald-700" />
                             </button>
 
-                            {/* 2. Edit Button */}
+                            {/* 2. Transfer Branch Button */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedStaffForTransfer(member);
+                              }}
+                              className="p-2 text-xs font-semibold text-slate-700 hover:text-emerald-700 bg-slate-100 hover:bg-emerald-50 border border-slate-300 rounded-xl transition-all inline-flex items-center justify-center btn-press shadow-2xs cursor-pointer"
+                              title="Transfer Staff to Another Branch"
+                            >
+                              <ArrowRightLeft className="w-3.5 h-3.5" />
+                            </button>
+
+                            {/* 3. Edit Button */}
                             <button
                               type="button"
                               onClick={(e) => {
@@ -724,7 +753,17 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
         onOpenLoan={(member, defaultType) =>
           setSelectedStaffForLoan({ staff: member, defaultType: defaultType || 'loan_issue' })
         }
+        onOpenTransfer={(member) => setSelectedStaffForTransfer(member)}
       />
+
+      {/* Transfer Staff Modal */}
+      {selectedStaffForTransfer && (
+        <TransferStaffModal
+          isOpen={!!selectedStaffForTransfer}
+          onClose={() => setSelectedStaffForTransfer(null)}
+          staff={selectedStaffForTransfer}
+        />
+      )}
 
       {/* 2. One-by-One Salary Studio Modal */}
       {selectedStaffForSalary && (

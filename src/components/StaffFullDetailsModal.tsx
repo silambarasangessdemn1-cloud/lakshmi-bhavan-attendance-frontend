@@ -26,6 +26,7 @@ import {
   Plus,
   FileText,
   ExternalLink,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { StaffMember, PayrollCalculation } from '../types';
 import { useStaff } from '../context/StaffContext';
@@ -47,6 +48,7 @@ interface StaffFullDetailsModalProps {
   onOpenSalary: (staffId: string) => void;
   onOpenAdvance?: (staff: StaffMember) => void;
   onOpenLoan?: (staff: StaffMember, defaultType?: 'loan_issue' | 'loan_repay') => void;
+  onOpenTransfer?: (staff: StaffMember) => void;
 }
 
 export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
@@ -57,6 +59,7 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
   onOpenSalary,
   onOpenAdvance,
   onOpenLoan,
+  onOpenTransfer,
 }) => {
   const {
     getStaffLoanBalance,
@@ -214,6 +217,21 @@ export const StaffFullDetailsModal: React.FC<StaffFullDetailsModalProps> = ({
                     <MessageCircle className="w-4 h-4" />
                   </a>
                 </>
+              )}
+
+              {onOpenTransfer && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onOpenTransfer(staff);
+                  }}
+                  className="px-2.5 py-1.5 bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 rounded-xl text-emerald-200 hover:text-white transition-all shadow-xs cursor-pointer flex items-center gap-1.5 text-xs font-bold"
+                  title="Transfer Staff to Another Branch"
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Transfer Branch</span>
+                </button>
               )}
 
               <button

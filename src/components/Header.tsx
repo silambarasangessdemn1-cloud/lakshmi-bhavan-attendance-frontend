@@ -8,6 +8,7 @@ import {
   Building2,
   ShieldCheck,
   LogOut,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 import { useAuth } from '../context/AuthContext';
@@ -21,6 +22,7 @@ interface HeaderProps {
   onOpenAddStaff: () => void;
   onOpenSettings: () => void;
   onOpenBranchManagement?: () => void;
+  onOpenTransfers?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -29,11 +31,13 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAddStaff,
   onOpenSettings,
   onOpenBranchManagement,
+  onOpenTransfers,
 }) => {
   const {
     staff,
     settings,
     isBackendConnected,
+    pendingTransferCount,
   } = useStaff();
 
   const {
@@ -174,6 +178,32 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 <ShieldCheck className={`w-3.5 h-3.5 ${branches.length === 0 ? 'text-white' : 'text-emerald-600'}`} />
                 <span>{branches.length === 0 ? '+ Add Branch' : 'Branches & Admins'}</span>
+              </button>
+            )}
+
+            {/* Branch Transfer Requests Hub Button */}
+            {onOpenTransfers && (
+              <button
+                type="button"
+                onClick={onOpenTransfers}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition-all shadow-2xs cursor-pointer shrink-0 ${
+                  pendingTransferCount > 0
+                    ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-amber-500/30 font-extrabold animate-pulse'
+                    : 'text-slate-800 bg-white hover:bg-slate-100 border border-slate-300'
+                }`}
+                title={
+                  isSuperAdmin
+                    ? `${pendingTransferCount} transfer requests pending your review`
+                    : 'View branch transfer requests'
+                }
+              >
+                <ArrowRightLeft className={`w-3.5 h-3.5 ${pendingTransferCount > 0 ? 'text-slate-950' : 'text-emerald-600'}`} />
+                <span>Transfers</span>
+                {pendingTransferCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-slate-950 text-amber-400">
+                    {pendingTransferCount}
+                  </span>
+                )}
               </button>
             )}
 

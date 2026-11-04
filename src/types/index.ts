@@ -1,3 +1,26 @@
+export type TransferRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
+export interface TransferRequest {
+  id: string;
+  staffId: string;
+  staffName: string;
+  fromBranchId: string;
+  fromBranchName?: string;
+  toBranchId: string;
+  toBranchName?: string;
+  reason?: string;
+  requestedByUserId: string;
+  requestedByUserName: string;
+  requestedByUserRole: string;
+  status: TransferRequestStatus;
+  reviewedByUserId?: string | null;
+  reviewedByUserName?: string | null;
+  reviewNotes?: string;
+  reviewedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type AttendanceStatus = 'present' | 'half' | 'absent' | 'leave';
 
 export interface Branch {

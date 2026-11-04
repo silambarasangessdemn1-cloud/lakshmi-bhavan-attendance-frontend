@@ -18,6 +18,7 @@ import { StaffFullDetailsModal } from './components/StaffFullDetailsModal';
 import { SalaryStudioModal } from './components/SalaryStudioModal';
 import { SettingsModal, FONT_OPTIONS } from './components/SettingsModal';
 import { BranchAdminManagementModal } from './components/BranchAdminManagementModal';
+import { TransferRequestsListModal } from './components/TransferRequestsListModal';
 import { ToastContainer } from './components/ToastNotification';
 import { StaffMember, LoanAdvanceType } from './types';
 
@@ -30,6 +31,7 @@ const MainLayout: React.FC = () => {
   const [staffToEdit, setStaffToEdit] = useState<StaffMember | null>(null);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isBranchManagementOpen, setIsBranchManagementOpen] = useState(false);
+  const [isTransferHubOpen, setIsTransferHubOpen] = useState(false);
 
   // Modal configuration for Advances & Loans
   const [advanceLoanModalConfig, setAdvanceLoanModalConfig] = useState<{
@@ -98,6 +100,7 @@ const MainLayout: React.FC = () => {
         onOpenAddStaff={handleOpenAddStaff}
         onOpenSettings={() => setIsSettingsModalOpen(true)}
         onOpenBranchManagement={() => setIsBranchManagementOpen(true)}
+        onOpenTransfers={() => setIsTransferHubOpen(true)}
       />
 
       {/* Main Workspace (Initial Home View is Staff List) */}
@@ -156,6 +159,12 @@ const MainLayout: React.FC = () => {
           onClose={() => setIsBranchManagementOpen(false)}
         />
       )}
+
+      {/* Branch Transfer Requests Hub Modal */}
+      <TransferRequestsListModal
+        isOpen={isTransferHubOpen}
+        onClose={() => setIsTransferHubOpen(false)}
+      />
 
       {/* Dedicated Advance / Loan Modal */}
       {advanceLoanModalConfig.isOpen && (

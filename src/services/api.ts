@@ -6,6 +6,7 @@ import {
   CompanySettings,
   Branch,
   User,
+  TransferRequest,
 } from '../types';
 
 // Common centralized API endpoint for Shree Lakshmi Bhavan Staff & Payroll Manager
@@ -222,6 +223,39 @@ export const api = {
     await request<ApiResponse>(`/staff/${encodeURIComponent(id)}`, {
       method: 'DELETE',
     });
+  },
+
+  // Branch Transfer Requests
+  getTransferRequests: async (params?: { status?: string; branchId?: string }): Promise<TransferRequest[]> => {
+    const query = new URLSearchParams();
+    if (params?.status) query.set('status', params.status);
+    if (params?.branchId) query.set('branchId', params.branchId);
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const res = await request<ApiResponse<TransferRequest[]>>(`/transfers${qs}`);
+    return res.data || [];
+  },
+
+  createTransferRequest: async (data: {
+    staffId: string;
+    toBranchId: string;
+    reason?: string;
+    autoApprove?: boolean;
+  }): Promise<{ message: string; data: TransferRequest }> => {
+    return request<ApiResponse<TransferRequest>>('/transfers', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }) as any;
+  },
+
+  respondToTransferRequest: async (
+    id: string,
+    action: 'approve' | 'reject' | 'cancel',
+    reviewNotes?: string
+  ): Promise<{ message: string; data: TransferRequest }> => {
+    return request<ApiResponse<TransferRequest>>(`/transfers/${encodeURIComponent(id)}/respond`, {
+      method: 'PUT',
+      body: JSON.stringify({ action, reviewNotes }),
+    }) as any;
   },
 
   // Attendance

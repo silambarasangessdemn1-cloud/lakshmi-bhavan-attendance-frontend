@@ -6,6 +6,7 @@ import {
   CompanySettings,
   PayrollCalculation,
   LoanAdvanceEntry,
+  TransferRequest,
 } from '../types';
 import { defaultCompanySettings } from '../utils/companyDefaults';
 import { getCurrentMonth } from '../utils/formatters';
@@ -32,6 +33,13 @@ interface StaffContextType {
   updateStaff: (id: string, member: Partial<StaffMember>) => Promise<{ success: boolean; message?: string }>;
   deleteStaff: (id: string) => Promise<void>;
   getStaff: (id: string) => StaffMember | undefined;
+
+  // Branch Transfer Requests
+  transferRequests: TransferRequest[];
+  pendingTransferCount: number;
+  refreshTransfers: () => Promise<void>;
+  requestStaffTransfer: (staffId: string, toBranchId: string, reason?: string) => Promise<{ success: boolean; message: string }>;
+  respondTransfer: (requestId: string, action: 'approve' | 'reject' | 'cancel', notes?: string) => Promise<{ success: boolean; message: string }>;
 
   // Attendance
   saveAttendanceRecord: (record: Omit<AttendanceRecord, 'id'>) => Promise<void>;
@@ -120,6 +128,7 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [payments, setPayments] = useState<PaymentRecord[]>(initialLocal.payments);
   const [loanAdvances, setLoanAdvances] = useState<LoanAdvanceEntry[]>(initialLocal.loanAdvances);
   const [settings, setSettings] = useState<CompanySettings>(getInitialSettings);
+  const [transferRequests, setTransferRequests] = useState<TransferRequest[]>([]);
 
   const dismissToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -159,12 +168,13 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       const branchFilter = activeBranchId && activeBranchId !== 'all' ? activeBranchId : undefined;
 
-      const [staffData, attData, loansData, paysData, settingsData] = await Promise.all([
+      const [staffData, attData, loansData, paysData, settingsData, transfersData] = await Promise.all([
         api.getStaff(branchFilter ? { branchId: branchFilter } : undefined),
         api.getAttendance(),
         api.getLoanAdvances(),
         api.getPayments(),
         api.getSettings(),
+        api.getTransferRequests(),
       ]);
 
       if (Array.isArray(staffData)) {
@@ -186,6 +196,9 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
       if (settingsData) {
         setSettings(settingsData);
+      }
+      if (Array.isArray(transfersData)) {
+        setTransferRequests(transfersData);
       }
     } catch (err: any) {
       setIsBackendConnected(false);
@@ -292,6 +305,53 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       console.warn('Could not sync staff deletion to backend:', err);
     }
   };
+
+  // Branch Transfer Handlers
+  const refreshTransfers = async () => {
+    try {
+      if (isBackendConnected) {
+        const data = await api.getTransferRequests();
+        setTransferRequests(data);
+      }
+    } catch (err) {
+      console.warn('Could not refresh transfers:', err);
+    }
+  };
+
+  const requestStaffTransfer = async (
+    staffId: string,
+    toBranchId: string,
+    reason?: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const res = await api.createTransferRequest({
+        staffId,
+        toBranchId,
+        reason,
+        autoApprove: user?.role === 'superadmin',
+      });
+      await Promise.all([refreshTransfers(), refreshData()]);
+      return { success: true, message: res.message || 'Transfer request submitted.' };
+    } catch (err: any) {
+      return { success: false, message: err.message || 'Failed to submit transfer request.' };
+    }
+  };
+
+  const respondTransfer = async (
+    requestId: string,
+    action: 'approve' | 'reject' | 'cancel',
+    notes?: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      const res = await api.respondToTransferRequest(requestId, action, notes);
+      await Promise.all([refreshTransfers(), refreshData()]);
+      return { success: true, message: res.message || `Transfer ${action}d successfully.` };
+    } catch (err: any) {
+      return { success: false, message: err.message || `Failed to ${action} transfer.` };
+    }
+  };
+
+  const pendingTransferCount = transferRequests.filter((r) => r.status === 'pending').length;
 
   // Attendance helpers
   const saveAttendanceRecord = async (record: Omit<AttendanceRecord, 'id'>): Promise<void> => {
@@ -739,6 +799,11 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         updateStaff,
         deleteStaff,
         getStaff,
+        transferRequests,
+        pendingTransferCount,
+        refreshTransfers,
+        requestStaffTransfer,
+        respondTransfer,
         saveAttendanceRecord,
         saveBulkAttendance,
         replaceDateAttendance,
