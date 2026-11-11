@@ -228,12 +228,17 @@ export const api = {
 
   // Branch Transfer Requests
   getTransferRequests: async (params?: { status?: string; branchId?: string }): Promise<TransferRequest[]> => {
-    const query = new URLSearchParams();
-    if (params?.status) query.set('status', params.status);
-    if (params?.branchId) query.set('branchId', params.branchId);
-    const qs = query.toString() ? `?${query.toString()}` : '';
-    const res = await request<ApiResponse<TransferRequest[]>>(`/transfers${qs}`);
-    return res.data || [];
+    try {
+      const query = new URLSearchParams();
+      if (params?.status) query.set('status', params.status);
+      if (params?.branchId) query.set('branchId', params.branchId);
+      const qs = query.toString() ? `?${query.toString()}` : '';
+      const res = await request<ApiResponse<TransferRequest[]>>(`/transfers${qs}`);
+      return res.data || [];
+    } catch (err: any) {
+      console.warn('api.getTransferRequests unavailable or not supported:', err?.message || err);
+      return [];
+    }
   },
 
   createTransferRequest: async (data: {

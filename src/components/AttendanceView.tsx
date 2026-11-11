@@ -13,6 +13,7 @@ import {
   AlertCircle,
   X,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 import { AttendanceRecord, AttendanceStatus } from '../types';
@@ -30,6 +31,7 @@ export const AttendanceView: React.FC = () => {
   const {
     staff,
     attendance,
+    isLoading,
     saveAttendanceRecord,
     replaceDateAttendance,
     deleteAttendance,
@@ -623,7 +625,12 @@ export const AttendanceView: React.FC = () => {
           {/* Roll Call Roster List */}
           <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
             <div className="divide-y divide-slate-100">
-              {filteredStaff.length === 0 ? (
+              {isLoading ? (
+                <div className="p-12 text-center text-xs text-slate-500 flex flex-col items-center justify-center">
+                  <Loader2 className="w-6 h-6 text-emerald-600 animate-spin mb-2" />
+                  <span>Loading attendance roster...</span>
+                </div>
+              ) : filteredStaff.length === 0 ? (
                 <div className="p-8 text-center text-xs text-slate-500">
                   No staff members match the selected criteria for this roll-call.
                 </div>

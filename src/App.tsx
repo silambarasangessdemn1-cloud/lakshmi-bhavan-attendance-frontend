@@ -23,7 +23,7 @@ import { ToastContainer } from './components/ToastNotification';
 import { StaffMember, LoanAdvanceType } from './types';
 
 const MainLayout: React.FC = () => {
-  const { staff, toasts, dismissToast, settings } = useStaff();
+  const { staff, toasts, dismissToast, settings, isLoading } = useStaff();
   const { isSuperAdmin } = useAuth();
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('staff');
@@ -102,6 +102,13 @@ const MainLayout: React.FC = () => {
         onOpenBranchManagement={() => setIsBranchManagementOpen(true)}
         onOpenTransfers={() => setIsTransferHubOpen(true)}
       />
+
+      {/* Switching Branch / Loading Progress Indicator Bar */}
+      {isLoading && (
+        <div className="w-full bg-emerald-100/60 overflow-hidden h-1">
+          <div className="bg-emerald-600 h-1 w-full animate-pulse" />
+        </div>
+      )}
 
       {/* Main Workspace (Initial Home View is Staff List) */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 transition-all">

@@ -24,6 +24,7 @@ import {
   Trash2,
   CornerDownLeft,
   ArrowRightLeft,
+  Loader2,
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 import { StaffMember } from '../types';
@@ -46,6 +47,7 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
 }) => {
   const {
     staff,
+    isLoading,
     selectedMonth,
     setSelectedMonth,
     getStaffLoanBalance,
@@ -480,7 +482,13 @@ export const StaffDirectoryView: React.FC<StaffDirectoryViewProps> = ({
       </div>
 
       {/* 4. Content: Dense Table View or Modern Card Grid */}
-      {filteredStaff.length === 0 ? (
+      {isLoading ? (
+        <div className="bg-white rounded-2xl border border-slate-200 p-16 text-center shadow-xs flex flex-col items-center justify-center">
+          <Loader2 className="w-8 h-8 text-emerald-600 animate-spin mb-3" />
+          <h3 className="text-sm sm:text-base font-bold text-slate-900">Loading branch data...</h3>
+          <p className="text-xs text-slate-500 mt-1">Fetching staff records and ledger</p>
+        </div>
+      ) : filteredStaff.length === 0 ? (
         <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-xs">
           <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-500 flex items-center justify-center mx-auto mb-3 shadow-inner">
             <Building className="w-7 h-7" />

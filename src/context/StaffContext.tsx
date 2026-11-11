@@ -162,11 +162,11 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Sync data with backend API - strictly sets dynamic data returned by API
   const refreshData = useCallback(async () => {
+    setIsLoading(true);
+    const branchFilter = activeBranchId && activeBranchId !== 'all' ? activeBranchId : undefined;
     try {
       const health = await api.checkHealth();
       setIsBackendConnected(true);
-
-      const branchFilter = activeBranchId && activeBranchId !== 'all' ? activeBranchId : undefined;
 
       const [staffData, attData, loansData, paysData, settingsData, transfersData] = await Promise.all([
         api.getStaff(branchFilter ? { branchId: branchFilter } : undefined),
@@ -181,7 +181,7 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         // Exclude any legacy demo IDs
         let dynamicOnly = staffData.filter((s) => !LEGACY_DEMO_IDS.has(s.id));
         if (branchFilter) {
-          dynamicOnly = dynamicOnly.filter((s) => !s.branchId || s.branchId === branchFilter);
+          dynamicOnly = dynamicOnly.filter((s) => s.branchId === branchFilter);
         }
         setStaff(dynamicOnly);
       }
@@ -203,6 +203,14 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } catch (err: any) {
       setIsBackendConnected(false);
       console.warn('Backend API connection offline, running in resilient local mode:', err.message);
+
+      // In local/offline mode, also filter staff by branch if a branch is selected
+      const localData = getInitialLocalStorageData();
+      let localStaff = localData.staff;
+      if (branchFilter) {
+        localStaff = localStaff.filter((s) => s.branchId === branchFilter);
+      }
+      setStaff(localStaff);
     } finally {
       setIsLoading(false);
     }
@@ -237,7 +245,10 @@ export const StaffProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return { success: false, message: err.message || `Staff ID "${trimmedId}" is already registered.` };
     }
 
-    setStaff((prev) => [...prev, member]);
+    const branchFilter = activeBranchId && activeBranchId !== 'all' ? activeBranchId : undefined;
+    if (!branchFilter || member.branchId === branchFilter) {
+      setStaff((prev) => [...prev, member]);
+    }
     return { success: true };
   };
 
