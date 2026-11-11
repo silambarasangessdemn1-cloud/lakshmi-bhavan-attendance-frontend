@@ -146,10 +146,11 @@ export const api = {
   },
 
   // Users (Branch Admins / Super Admins)
-  getUsers: async (params?: { includeDeleted?: boolean; deletedOnly?: boolean }): Promise<User[]> => {
+  getUsers: async (params?: { includeDeleted?: boolean; deletedOnly?: boolean; branchId?: string }): Promise<User[]> => {
     const query = new URLSearchParams();
     if (params?.includeDeleted) query.set('includeDeleted', 'true');
     if (params?.deletedOnly) query.set('deletedOnly', 'true');
+    if (params?.branchId && params.branchId !== 'all') query.set('branchId', params.branchId);
     const qs = query.toString() ? `?${query.toString()}` : '';
     const res = await request<ApiResponse<User[]>>(`/users${qs}`);
     return res.data || [];

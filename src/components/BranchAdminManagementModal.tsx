@@ -33,7 +33,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
   isOpen,
   onClose,
 }) => {
-  const { branches, refreshBranches, isSuperAdmin } = useAuth();
+  const { branches, refreshBranches, isSuperAdmin, activeBranchId } = useAuth();
   const { staff, showToast } = useStaff();
 
   const [activeTab, setActiveTab] = useState<'branches' | 'admins' | 'trash'>('branches');
@@ -99,7 +99,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       refreshBranches();
       loadAdmins();
     }
-  }, [isOpen, refreshBranches]);
+  }, [isOpen, refreshBranches, activeBranchId]);
 
   if (!isOpen || !isSuperAdmin) return null;
 
