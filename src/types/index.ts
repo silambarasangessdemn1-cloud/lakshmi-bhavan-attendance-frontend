@@ -31,6 +31,8 @@ export interface Branch {
   phone?: string;
   address?: string;
   status?: 'active' | 'inactive';
+  isDeleted?: boolean;
+  deletedAt?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

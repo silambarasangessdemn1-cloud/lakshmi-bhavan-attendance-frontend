@@ -39,12 +39,15 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
   const [activeTab, setActiveTab] = useState<'branches' | 'admins' | 'trash'>('branches');
   const [userList, setUserList] = useState<User[]>([]);
   const [trashList, setTrashList] = useState<User[]>([]);
+  const [trashedBranches, setTrashedBranches] = useState<Branch[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [successMsg, setSuccessMsg] = useState<string>('');
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [restoringAdminId, setRestoringAdminId] = useState<string | null>(null);
+  const [restoringBranchId, setRestoringBranchId] = useState<string | null>(null);
   const [permanentDeletingId, setPermanentDeletingId] = useState<string | null>(null);
+  const [permanentDeletingBranchId, setPermanentDeletingBranchId] = useState<string | null>(null);
 
   // Branch Form Modal State
   const [isBranchFormOpen, setIsBranchFormOpen] = useState<boolean>(false);
@@ -75,18 +78,20 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
     role: 'admin' as 'admin' | 'superadmin',
   });
 
-  // Load admins list (both active and trash)
-  const loadAdmins = async () => {
+  // Load admins and branches list (both active and trash)
+  const loadAdminsAndTrash = async () => {
     setIsLoading(true);
     try {
-      const [activeUsers, trashedUsers] = await Promise.all([
+      const [activeUsers, trashedUsers, trashedBranchList] = await Promise.all([
         api.getUsers({ includeDeleted: false }),
         api.getUsers({ deletedOnly: true }),
+        api.getBranches({ deletedOnly: true }),
       ]);
       setUserList(activeUsers);
       setTrashList(trashedUsers);
+      setTrashedBranches(trashedBranchList);
     } catch (err: any) {
-      console.warn('Could not fetch admins:', err);
+      console.warn('Could not fetch admins or trash:', err);
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +102,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       setErrorMsg('');
       setSuccessMsg('');
       refreshBranches();
-      loadAdmins();
+      loadAdminsAndTrash();
     }
   }, [isOpen, refreshBranches, activeBranchId]);
 
@@ -203,7 +208,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
       }
       setIsBranchFormOpen(false);
       await refreshBranches();
-      await loadAdmins();
+      await loadAdminsAndTrash();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to save branch.');
     } finally {
@@ -222,7 +227,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
 
     if (
       !window.confirm(
-        `Are you sure you want to delete branch "${branchName}" and its login account?`
+        `Move branch "${branchName}" and its login account to Trash?\n\nYou can recover it anytime from the Trash tab.`
       )
     ) {
       return;
@@ -231,13 +236,43 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
     setDeletingBranchId(branchId);
     try {
       await api.deleteBranch(branchId);
-      showToast(`Branch "${branchName}" deleted.`, 'info');
+      showToast(`Branch "${branchName}" moved to Trash. You can recover it anytime.`, 'info');
       await refreshBranches();
-      await loadAdmins();
+      await loadAdminsAndTrash();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to delete branch.');
     } finally {
       setDeletingBranchId(null);
+    }
+  };
+
+  const handleRestoreBranch = async (branchId: string, branchName: string) => {
+    setRestoringBranchId(branchId);
+    try {
+      await api.restoreBranch(branchId);
+      showToast(`Branch "${branchName}" and its admin accounts recovered successfully!`, 'success');
+      await refreshBranches();
+      await loadAdminsAndTrash();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to restore branch.');
+    } finally {
+      setRestoringBranchId(null);
+    }
+  };
+
+  const handlePermanentDeleteBranch = async (branchId: string, branchName: string) => {
+    if (!window.confirm(`Permanently delete branch "${branchName}" and associated admin accounts?\nThis cannot be undone.`)) return;
+
+    setPermanentDeletingBranchId(branchId);
+    try {
+      await api.deleteBranch(branchId, { permanent: true });
+      showToast(`Branch "${branchName}" permanently deleted.`, 'info');
+      await refreshBranches();
+      await loadAdminsAndTrash();
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Failed to permanently delete branch.');
+    } finally {
+      setPermanentDeletingBranchId(null);
     }
   };
 
@@ -312,7 +347,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
         showToast(`Admin "${adminForm.username}" created successfully!`, 'success');
       }
       setIsAdminFormOpen(false);
-      await loadAdmins();
+      await loadAdminsAndTrash();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to save admin account.');
     } finally {
@@ -327,7 +362,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
     try {
       await api.deleteUser(userId);
       showToast(`Admin "${username}" moved to Trash. You can recover it anytime.`, 'info');
-      await loadAdmins();
+      await loadAdminsAndTrash();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to remove admin.');
     } finally {
@@ -340,7 +375,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
     try {
       await api.restoreUser(userId);
       showToast(`Admin "${username}" restored successfully without any data loss!`, 'success');
-      await loadAdmins();
+      await loadAdminsAndTrash();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to restore admin.');
     } finally {
@@ -355,7 +390,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
     try {
       await api.deleteUser(userId, { permanent: true });
       showToast(`Admin "${username}" permanently deleted.`, 'info');
-      await loadAdmins();
+      await loadAdminsAndTrash();
     } catch (err: any) {
       setErrorMsg(err.message || 'Failed to permanently delete admin.');
     } finally {
@@ -435,7 +470,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
               }`}
             >
               <Trash2 className="w-4 h-4" />
-              <span>Trash / Recycle Bin ({trashList.length})</span>
+              <span>Trash / Recycle Bin ({trashedBranches.length + trashList.length})</span>
             </button>
           </div>
 
@@ -665,94 +700,184 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
             </div>
           ) : (
             /* TRASH / RECYCLE BIN */
-            <div className="space-y-3">
-              {trashList.length === 0 ? (
+            <div className="space-y-4">
+              {trashedBranches.length === 0 && trashList.length === 0 ? (
                 <div className="py-12 text-center text-slate-400">
                   <ArchiveRestore className="w-12 h-12 mx-auto mb-2 text-slate-300" />
                   <p className="text-sm font-medium">Trash is empty.</p>
                   <p className="text-xs mt-1">
-                    When you remove a branch admin, it will appear here so you can recover it without losing any data.
+                    When you delete a branch or an admin account, it will appear here so you can recover it without losing any data.
                   </p>
                 </div>
               ) : (
-                trashList.map((u) => {
-                  const assignedBranch = branches.find((b) => b.id === u.branchId);
+                <>
+                  {/* Trashed Branches */}
+                  {trashedBranches.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 px-1">
+                        <Building2 className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Deleted Branches ({trashedBranches.length})</span>
+                      </div>
+                      {trashedBranches.map((b) => (
+                        <div
+                          key={b.id}
+                          className="p-4 rounded-xl border border-rose-200 bg-rose-50/30 flex items-center justify-between transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm bg-rose-100 text-rose-800 border border-rose-200">
+                              <Building2 className="w-5 h-5 text-rose-700" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-slate-800 text-sm line-through opacity-75">
+                                  {b.name}
+                                </span>
+                                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-rose-200/80 text-rose-800">
+                                  {b.code}
+                                </span>
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700">
+                                  Branch in Trash
+                                </span>
+                              </div>
+                              <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
+                                {b.location && <span>Location: <strong>{b.location}</strong></span>}
+                                {b.deletedAt && (
+                                  <span className="text-[11px] text-slate-400">
+                                    Deleted: {new Date(b.deletedAt).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
 
-                  return (
-                    <div
-                      key={u.id}
-                      className="p-4 rounded-xl border border-rose-200 bg-rose-50/30 flex items-center justify-between transition-all"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm bg-rose-100 text-rose-800 border border-rose-200">
-                          {u.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-800 text-sm line-through opacity-75">
-                              {u.name}
-                            </span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700">
-                              In Trash
-                            </span>
-                          </div>
-                          <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
-                            <span>
-                              Username: <strong className="text-slate-700">{u.username}</strong>
-                            </span>
-                            {u.role === 'admin' && (
-                              <span className="flex items-center gap-1 text-slate-600 font-medium">
-                                <Building2 className="w-3.5 h-3.5" />
-                                <span>{assignedBranch?.name || 'Assigned Branch'}</span>
-                              </span>
-                            )}
-                            {u.deletedAt && (
-                              <span className="text-[11px] text-slate-400">
-                                Deleted: {new Date(u.deletedAt).toLocaleDateString()}
-                              </span>
-                            )}
+                            <button
+                              type="button"
+                              disabled={restoringBranchId === b.id}
+                              onClick={() => handleRestoreBranch(b.id, b.name)}
+                              className="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                              title="Recover branch and all its associated admin accounts"
+                            >
+                              {restoringBranchId === b.id ? (
+                                <>
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                  <span>Restoring...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <RotateCcw className="w-3.5 h-3.5" />
+                                  <span>Recover Branch</span>
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              type="button"
+                              disabled={permanentDeletingBranchId === b.id}
+                              onClick={() => handlePermanentDeleteBranch(b.id, b.name)}
+                              className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
+                              title="Delete Branch Permanently"
+                            >
+                              {permanentDeletingBranchId === b.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          disabled={restoringAdminId === u.id}
-                          onClick={() => handleRestoreAdmin(u.id, u.username)}
-                          className="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                          title="Recover admin without losing credentials or data"
-                        >
-                          {restoringAdminId === u.id ? (
-                            <>
-                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              <span>Restoring...</span>
-                            </>
-                          ) : (
-                            <>
-                              <RotateCcw className="w-3.5 h-3.5" />
-                              <span>Recover Admin</span>
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          type="button"
-                          disabled={permanentDeletingId === u.id}
-                          onClick={() => handlePermanentDelete(u.id, u.username)}
-                          className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
-                          title="Delete Permanently"
-                        >
-                          {permanentDeletingId === u.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
+                      ))}
                     </div>
-                  );
-                })
+                  )}
+
+                  {/* Trashed Admins */}
+                  {trashList.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5 px-1 pt-2">
+                        <Users className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Deleted Admins ({trashList.length})</span>
+                      </div>
+                      {trashList.map((u) => {
+                        const assignedBranch = branches.find((b) => b.id === u.branchId);
+
+                        return (
+                          <div
+                            key={u.id}
+                            className="p-4 rounded-xl border border-rose-200 bg-rose-50/30 flex items-center justify-between transition-all"
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm bg-rose-100 text-rose-800 border border-rose-200">
+                                {u.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-slate-800 text-sm line-through opacity-75">
+                                    {u.name}
+                                  </span>
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 text-rose-700">
+                                    In Trash
+                                  </span>
+                                </div>
+                                <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-3">
+                                  <span>
+                                    Username: <strong className="text-slate-700">{u.username}</strong>
+                                  </span>
+                                  {u.role === 'admin' && (
+                                    <span className="flex items-center gap-1 text-slate-600 font-medium">
+                                      <Building2 className="w-3.5 h-3.5" />
+                                      <span>{assignedBranch?.name || 'Assigned Branch'}</span>
+                                    </span>
+                                  )}
+                                  {u.deletedAt && (
+                                    <span className="text-[11px] text-slate-400">
+                                      Deleted: {new Date(u.deletedAt).toLocaleDateString()}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                disabled={restoringAdminId === u.id}
+                                onClick={() => handleRestoreAdmin(u.id, u.username)}
+                                className="px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                                title="Recover admin without losing credentials or data"
+                              >
+                                {restoringAdminId === u.id ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Restoring...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    <span>Recover Admin</span>
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                type="button"
+                                disabled={permanentDeletingId === u.id}
+                                onClick={() => handlePermanentDelete(u.id, u.username)}
+                                className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-100 transition-colors cursor-pointer"
+                                title="Delete Permanently"
+                              >
+                                {permanentDeletingId === u.id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                                ) : (
+                                  <Trash2 className="w-4 h-4" />
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   ArrowRightLeft,
@@ -14,7 +14,8 @@ import {
 } from 'lucide-react';
 import { useStaff } from '../context/StaffContext';
 import { useAuth } from '../context/AuthContext';
-import { StaffMember } from '../types';
+import { StaffMember, Branch } from '../types';
+import { api } from '../services/api';
 
 interface TransferStaffModalProps {
   isOpen: boolean;
@@ -27,7 +28,7 @@ export const TransferStaffModal: React.FC<TransferStaffModalProps> = ({
   onClose,
   staff,
 }) => {
-  const { branches, isSuperAdmin, isBranchAdmin, user } = useAuth();
+  const { branches: authBranches, isSuperAdmin, isBranchAdmin, user } = useAuth();
   const {
     requestStaffTransfer,
     respondTransfer,
@@ -35,16 +36,42 @@ export const TransferStaffModal: React.FC<TransferStaffModalProps> = ({
     showToast,
   } = useStaff();
 
+  const [allBranches, setAllBranches] = useState<Branch[]>(authBranches);
+  const [isLoadingBranches, setIsLoadingBranches] = useState<boolean>(false);
   const [toBranchId, setToBranchId] = useState<string>('');
   const [reason, setReason] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [actioningId, setActioningId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'request' | 'history'>('request');
 
+  // Load all active branches so Branch Admin can see all destination branches to transfer to
+  useEffect(() => {
+    if (isOpen) {
+      setToBranchId('');
+      setReason('');
+      setIsLoadingBranches(true);
+      api.getBranches({ forTransfer: true })
+        .then((list) => {
+          if (list && list.length > 0) {
+            setAllBranches(list);
+          } else {
+            setAllBranches(authBranches);
+          }
+        })
+        .catch((err) => {
+          console.warn('Failed to load branches for transfer modal:', err);
+          setAllBranches(authBranches);
+        })
+        .finally(() => {
+          setIsLoadingBranches(false);
+        });
+    }
+  }, [isOpen, authBranches]);
+
   if (!isOpen || !staff) return null;
 
-  const currentBranch = branches.find((b) => b.id === staff.branchId);
-  const targetBranches = branches.filter((b) => b.id !== staff.branchId);
+  const currentBranch = allBranches.find((b) => b.id === staff.branchId);
+  const targetBranches = allBranches.filter((b) => b.id !== staff.branchId && !b.isDeleted);
 
   // Transfer history for this staff member
   const staffTransfers = transferRequests.filter((t) => t.staffId === staff.id);
@@ -265,9 +292,16 @@ export const TransferStaffModal: React.FC<TransferStaffModalProps> = ({
                       required
                       value={toBranchId}
                       onChange={(e) => setToBranchId(e.target.value)}
-                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
+                      disabled={isLoadingBranches || targetBranches.length === 0}
+                      className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg bg-white text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 disabled:bg-slate-100 disabled:text-slate-400 cursor-pointer"
                     >
-                      <option value="">Select Destination Branch</option>
+                      <option value="">
+                        {isLoadingBranches
+                          ? 'Loading branches...'
+                          : targetBranches.length === 0
+                          ? 'No other branches available'
+                          : 'Select Destination Branch'}
+                      </option>
                       {targetBranches.map((b) => (
                         <option key={b.id} value={b.id}>
                           {b.name} ({b.code}) {b.location ? `— ${b.location}` : ''}

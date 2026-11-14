@@ -108,8 +108,13 @@ export const api = {
   },
 
   // Branches
-  getBranches: async (): Promise<Branch[]> => {
-    const res = await request<ApiResponse<Branch[]>>('/branches');
+  getBranches: async (params?: { includeDeleted?: boolean; deletedOnly?: boolean; forTransfer?: boolean }): Promise<Branch[]> => {
+    const query = new URLSearchParams();
+    if (params?.includeDeleted) query.set('includeDeleted', 'true');
+    if (params?.deletedOnly) query.set('deletedOnly', 'true');
+    if (params?.forTransfer) query.set('forTransfer', 'true');
+    const qs = query.toString() ? `?${query.toString()}` : '';
+    const res = await request<ApiResponse<Branch[]>>(`/branches${qs}`);
     return res.data || [];
   },
 
@@ -139,10 +144,18 @@ export const api = {
     return res.data!;
   },
 
-  deleteBranch: async (id: string): Promise<void> => {
-    await request<ApiResponse>(`/branches/${encodeURIComponent(id)}`, {
+  deleteBranch: async (id: string, options?: { permanent?: boolean }): Promise<void> => {
+    const qs = options?.permanent ? '?permanent=true' : '';
+    await request<ApiResponse>(`/branches/${encodeURIComponent(id)}${qs}`, {
       method: 'DELETE',
     });
+  },
+
+  restoreBranch: async (id: string): Promise<Branch> => {
+    const res = await request<ApiResponse<Branch>>(`/branches/${encodeURIComponent(id)}/restore`, {
+      method: 'POST',
+    });
+    return res.data!;
   },
 
   // Users (Branch Admins / Super Admins)
