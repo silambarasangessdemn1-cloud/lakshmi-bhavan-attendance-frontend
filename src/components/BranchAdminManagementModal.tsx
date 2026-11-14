@@ -250,7 +250,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
     setRestoringBranchId(branchId);
     try {
       await api.restoreBranch(branchId);
-      showToast(`Branch "${branchName}" and its admin accounts recovered successfully!`, 'success');
+      showToast(`Branch "${branchName}" recovered successfully!`, 'success');
       await refreshBranches();
       await loadAdminsAndTrash();
     } catch (err: any) {
@@ -798,7 +798,7 @@ export const BranchAdminManagementModal: React.FC<BranchAdminManagementModalProp
                         <span>Deleted Admins ({trashList.length})</span>
                       </div>
                       {trashList.map((u) => {
-                        const assignedBranch = branches.find((b) => b.id === u.branchId);
+                        const assignedBranch = branches.find((b) => b.id === u.branchId) || trashedBranches.find((b) => b.id === u.branchId);
 
                         return (
                           <div
